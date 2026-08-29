@@ -22,14 +22,15 @@ void main() {
 
     // Splash is up first, with the wordmark and no home controls.
     expect(find.text('Clear the board'), findsOneWidget);
-    expect(find.textContaining('Play'), findsNothing);
+    // The home screen's primary action; tests run in English.
+    expect(find.textContaining('Start playing'), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 1900));
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('ARROWS'), findsOneWidget);
-    expect(find.textContaining('Play'), findsWidgets);
+    expect(find.textContaining('Start playing'), findsWidgets);
   });
 
   testWidgets('tapping the splash skips straight to home', (tester) async {
@@ -41,6 +42,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.textContaining('Play'), findsWidgets);
+    expect(find.textContaining('Start playing'), findsWidgets);
   });
 }

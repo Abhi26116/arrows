@@ -89,8 +89,7 @@ void main() {
         final index = (i + 1).toString().padLeft(2, '0');
 
         testWidgets('$index ${panel.source}', (tester) async {
-          final file =
-              File('store/screenshots/$platform/${panel.source}.png');
+          final file = File('store/screenshots/$platform/${panel.source}.png');
           if (!file.existsSync()) {
             fail('Missing ${file.path} — run tool/store_screenshots.dart '
                 'first.');

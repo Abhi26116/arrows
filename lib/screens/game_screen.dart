@@ -190,6 +190,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _showWin(int stars) async {
+    final l = AppLocalizations.of(context);
     final hasNext = !widget.isDaily &&
         widget.levelId != null &&
         widget.levelId! < LevelCatalog.count;
@@ -201,7 +202,7 @@ class _GameScreenState extends State<GameScreen> {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              widget.isDaily ? 'DAILY CLEAR' : 'CLEARED',
+              widget.isDaily ? l.gameDailyClear : l.gameCleared,
               maxLines: 1,
               softWrap: false,
               style: TextStyle(
@@ -216,12 +217,12 @@ class _GameScreenState extends State<GameScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            _level.label ?? 'Level ${widget.levelId}',
+            _level.label ?? l.gameLevelLabel(widget.levelId ?? 0),
             style: TextStyle(color: AppColors.muted),
           ),
           const SizedBox(height: 8),
           Text(
-            '${_session.mistakes} miss · $_hintsUsed hint',
+            l.gameMissHint(_session.mistakes, _hintsUsed),
             style: TextStyle(color: AppColors.muted, fontSize: 12),
           ),
           const SizedBox(height: 18),
@@ -256,7 +257,7 @@ class _GameScreenState extends State<GameScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Replay'),
+                  child: Text(l.gameReplay),
                 ),
               ),
               const SizedBox(width: 10),
@@ -276,7 +277,7 @@ class _GameScreenState extends State<GameScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: Text(hasNext ? 'Next' : 'Done'),
+                  child: Text(hasNext ? l.gameNext : l.gameDone),
                 ),
               ),
             ],
@@ -287,6 +288,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _showGameOver() async {
+    final l = AppLocalizations.of(context);
     SoundService.instance.play(Sfx.blocked);
     await _showPanel(
       barrierDismissible: false,
@@ -298,7 +300,7 @@ class _GameScreenState extends State<GameScreen> {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              'OUT OF HEARTS',
+              l.gameOutOfHearts,
               maxLines: 1,
               softWrap: false,
               style: TextStyle(
@@ -313,7 +315,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '${_session.cleared} of ${_session.totalArrows} arrows cleared',
+            l.gameArrowsCleared(_session.cleared, _session.totalArrows),
             style: TextStyle(color: AppColors.muted, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -326,7 +328,7 @@ class _GameScreenState extends State<GameScreen> {
                 if (!mounted) return;
                 if (!earned) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No ad ready — try again.')),
+                    SnackBar(content: Text(l.gameNoAdReady)),
                   );
                   return;
                 }
@@ -337,7 +339,7 @@ class _GameScreenState extends State<GameScreen> {
                 });
               },
               icon: const Icon(Icons.favorite_rounded, size: 18),
-              label: const Text('Extra heart'),
+              label: Text(l.gameExtraHeart),
             ),
           ),
           const SizedBox(height: 10),
@@ -357,7 +359,7 @@ class _GameScreenState extends State<GameScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Quit'),
+                  child: Text(l.gameQuit),
                 ),
               ),
               const SizedBox(width: 10),
@@ -375,7 +377,7 @@ class _GameScreenState extends State<GameScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Retry'),
+                  child: Text(l.gameRetry),
                 ),
               ),
             ],
@@ -429,9 +431,8 @@ class _GameScreenState extends State<GameScreen> {
       if (!earned) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Watch a short ad in Shop for bonus hints, or try again.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).gameHintAdHint),
           ),
         );
         return;
@@ -451,6 +452,7 @@ class _GameScreenState extends State<GameScreen> {
   /// has actually made moves.
   /// Asked before a board in progress is abandoned. Returns whether to leave.
   Future<bool> _confirmLeave() async {
+    final l = AppLocalizations.of(context);
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -459,7 +461,7 @@ class _GameScreenState extends State<GameScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: Text(
-          'Leave this board?',
+          l.gameLeaveTitle,
           style: TextStyle(
             fontFamily: 'DMSans',
             fontVariations: const [FontVariation('wght', 700)],
@@ -468,18 +470,18 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         content: Text(
-          'It starts from the beginning next time.',
+          l.gameLeaveBody,
           style: TextStyle(color: AppColors.muted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('Keep playing', style: TextStyle(color: AppColors.muted)),
+            child: Text(l.gameKeepPlaying,
+                style: TextStyle(color: AppColors.muted)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Leave', style: TextStyle(color: AppColors.danger)),
+            child: Text(l.gameLeave, style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -488,6 +490,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _confirmRestart() async {
+    final l = AppLocalizations.of(context);
     SoundService.instance.hapticSelection();
     if (_session.moves == 0 && _session.mistakes == 0) {
       setState(_load);
@@ -501,7 +504,7 @@ class _GameScreenState extends State<GameScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: Text(
-          'Restart board?',
+          l.gameRestartTitle,
           style: TextStyle(
             fontFamily: 'DMSans',
             fontVariations: const [FontVariation('wght', 700)],
@@ -510,18 +513,19 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         content: Text(
-          'Every arrow comes back and your hearts reset.',
+          l.gameRestartBody,
           style: TextStyle(color: AppColors.muted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('Keep playing', style: TextStyle(color: AppColors.muted)),
+            child: Text(l.gameKeepPlaying,
+                style: TextStyle(color: AppColors.muted)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Restart', style: TextStyle(color: AppColors.accent)),
+            child:
+                Text(l.gameRestart, style: TextStyle(color: AppColors.accent)),
           ),
         ],
       ),
@@ -540,9 +544,10 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final level = _level;
-    final title = widget.isDaily ? 'Daily' : level.difficulty;
-    final subtitle = widget.isDaily ? 'TODAY' : 'LEVEL ${level.id}';
+    final title = widget.isDaily ? l.navDaily : level.difficulty;
+    final subtitle = widget.isDaily ? l.gameToday : l.gameLevelNumber(level.id);
 
     return PopScope(
       // A board in progress lives only in memory, so leaving throws away
@@ -574,13 +579,13 @@ class _GameScreenState extends State<GameScreen> {
                             CircleIconButton(
                               icon: Icons.play_arrow_rounded,
                               flipped: true,
-                              tooltip: 'Back',
+                              tooltip: l.tooltipBack,
                               onTap: () => Navigator.pop(context),
                             ),
                             const SizedBox(width: 10),
                             CircleIconButton(
                               icon: Icons.undo_rounded,
-                              tooltip: 'Undo',
+                              tooltip: l.gameTooltipUndo,
                               onTap: _busy || !_session.canUndo
                                   ? null
                                   : () {
@@ -640,7 +645,7 @@ class _GameScreenState extends State<GameScreen> {
                           alignment: Alignment.centerRight,
                           child: CircleIconButton(
                             icon: Icons.cleaning_services_rounded,
-                            tooltip: 'Restart board',
+                            tooltip: l.gameTooltipRestart,
                             onTap: _busy ? null : _confirmRestart,
                           ),
                         ),
@@ -694,14 +699,16 @@ class _GameScreenState extends State<GameScreen> {
                             CircleIconButton(
                               icon: Icons.lightbulb_outline_rounded,
                               accent: true,
-                              tooltip: 'Hint',
+                              tooltip: l.gameTooltipHint,
                               onTap: _busy ? null : _hint,
                             ),
                             const SizedBox(height: 12),
                             CircleIconButton(
                               icon: Icons.grid_on_rounded,
                               active: _showGrid,
-                              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
+                              tooltip: _showGrid
+                                  ? l.gameTooltipHideGrid
+                                  : l.gameTooltipShowGrid,
                               onTap: _toggleGrid,
                             ),
                           ],

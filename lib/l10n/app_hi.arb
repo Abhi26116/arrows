@@ -34,6 +34,8 @@
   "gameReplay": "फिर से",
   "gameNext": "अगला",
   "gameDone": "हो गया",
+  "gameOutOfHearts": "दिल खत्म",
+  "gameArrowsCleared": "{total} में से {cleared} तीर हटे",
   "gameOverTitle": "दिल खत्म",
   "gameOverBody": "बोर्ड रीसेट हो जाएगा। एक और दिल के लिए छोटा विज्ञापन देखें, या शुरू से कोशिश करें।",
   "gameExtraHeart": "एक और दिल",

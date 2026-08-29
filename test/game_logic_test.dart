@@ -26,8 +26,8 @@ void main() {
   });
 
   test('a long arrow occupies every cell behind its tip', () {
-    final arrow =
-        ArrowPiece(id: 0, row: 2, col: 4, direction: Direction.right, length: 3);
+    final arrow = ArrowPiece(
+        id: 0, row: 2, col: 4, direction: Direction.right, length: 3);
     expect(arrow.cells, [(2, 4), (2, 3), (2, 2)]);
     expect(arrow.tailCol, 2);
     expect(arrow.covers(2, 3), isTrue);
@@ -63,8 +63,10 @@ void main() {
       rows: 4,
       cols: 6,
       arrows: [
-        ArrowPiece(id: 0, row: 1, col: 2, direction: Direction.right, length: 3),
-        ArrowPiece(id: 1, row: 1, col: 5, direction: Direction.right, length: 2),
+        ArrowPiece(
+            id: 0, row: 1, col: 2, direction: Direction.right, length: 3),
+        ArrowPiece(
+            id: 1, row: 1, col: 5, direction: Direction.right, length: 2),
       ],
     );
     final c = GameController(level);

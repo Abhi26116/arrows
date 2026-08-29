@@ -133,7 +133,8 @@ class AppStore extends ChangeNotifier {
   /// Whether the player has been asked to pick a language yet. Separate from
   /// [localeCode] because "follow the phone" is a real answer, and asking again
   /// every launch because they chose it would be rude.
-  bool get chosenLanguage => _prefs?.getBool('settings_chose_language') ?? false;
+  bool get chosenLanguage =>
+      _prefs?.getBool('settings_chose_language') ?? false;
 
   Future<void> setLocaleCode(String? code) async {
     await init();

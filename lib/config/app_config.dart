@@ -23,8 +23,7 @@ class AppConfig {
   static const androidAdmobAppId = 'ca-app-pub-9350608203842553~3050594303';
   static const iosAdmobAppId = 'ca-app-pub-9350608203842553~3329745579';
 
-  static const androidBannerAdUnitId =
-      'ca-app-pub-9350608203842553/8111349297';
+  static const androidBannerAdUnitId = 'ca-app-pub-9350608203842553/8111349297';
   static const iosBannerAdUnitId = 'ca-app-pub-9350608203842553/6111871911';
 
   static const androidInterstitialAdUnitId =

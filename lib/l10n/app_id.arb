@@ -34,6 +34,8 @@
   "gameReplay": "Ulangi",
   "gameNext": "Berikutnya",
   "gameDone": "Selesai",
+  "gameOutOfHearts": "HATI HABIS",
+  "gameArrowsCleared": "{cleared} dari {total} panah dibersihkan",
   "gameOverTitle": "Hati habis",
   "gameOverBody": "Papan akan diulang. Tonton iklan singkat untuk satu hati lagi, atau mulai dari awal.",
   "gameExtraHeart": "Hati tambahan",

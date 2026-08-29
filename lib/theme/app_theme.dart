@@ -57,9 +57,8 @@ class AppTheme {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? Colors.white
-              : p.muted,
+          (states) =>
+              states.contains(WidgetState.selected) ? Colors.white : p.muted,
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
@@ -82,7 +81,9 @@ class AppTheme {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           textStyle: const TextStyle(
               fontFamily: 'DMSans',
-              fontVariations: [FontVariation('wght', 700)], fontWeight: FontWeight.w700, fontSize: 16),
+              fontVariations: [FontVariation('wght', 700)],
+              fontWeight: FontWeight.w700,
+              fontSize: 16),
         ),
       ),
     );

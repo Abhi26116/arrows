@@ -45,13 +45,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _confirmReset() async {
+    final l = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Reset progress?',
+          l.settingsResetTitle,
           style: TextStyle(
             fontFamily: 'DMSans',
             fontVariations: const [FontVariation('wght', 700)],
@@ -60,18 +61,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         content: Text(
-          'Levels lock again and stars go back to zero. Purchases, themes, '
-          'and your daily streak are kept.',
+          l.settingsResetBody,
           style: TextStyle(color: AppColors.muted, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: AppColors.muted)),
+            child: Text(l.settingsCancel,
+                style: TextStyle(color: AppColors.muted)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Reset', style: TextStyle(color: AppColors.danger)),
+            child: Text(l.settingsResetConfirm,
+                style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -81,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     SoundService.instance.hapticMedium();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Progress reset')),
+      SnackBar(content: Text(l.settingsResetDone)),
     );
   }
 
@@ -94,6 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSettings(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final store = AppStore.instance;
     return Scaffold(
       body: AtmosphereBackground(
@@ -101,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppHeader(title: 'Settings'),
+              AppHeader(title: l.settingsTitle),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -112,11 +115,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       unlocked: store.maxUnlocked,
                     ),
                     const SizedBox(height: 18),
-                    const SectionLabel('Play'),
+                    SectionLabel(l.navHowTo),
                     _ToggleTile(
                       icon: Icons.grid_on_rounded,
-                      title: 'Cell grid',
-                      subtitle: 'Show the grid behind the arrows',
+                      title: l.settingsGrid,
+                      subtitle: l.settingsGridSub,
                       value: store.showGrid,
                       onChanged: (v) async {
                         await store.setShowGrid(v);
@@ -126,8 +129,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 10),
                     _ToggleTile(
                       icon: Icons.volume_up_rounded,
-                      title: 'Sound',
-                      subtitle: 'Clear, blocked, and win cues',
+                      title: l.settingsSound,
+                      subtitle: l.settingsSoundSub,
                       value: store.soundEnabled,
                       onChanged: (v) async {
                         await store.setSoundEnabled(v);
@@ -137,8 +140,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 10),
                     _ToggleTile(
                       icon: Icons.vibration_rounded,
-                      title: 'Haptics',
-                      subtitle: 'Tap and block feedback',
+                      title: l.settingsHaptics,
+                      subtitle: l.settingsHapticsSub,
                       value: store.hapticsEnabled,
                       onChanged: (v) async {
                         await store.setHapticsEnabled(v);
@@ -146,11 +149,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     const SizedBox(height: 22),
-                    const SectionLabel('More'),
+                    SectionLabel(l.settingsAbout),
                     _LinkTile(
                       icon: Icons.shopping_bag_outlined,
-                      title: 'Shop',
-                      subtitle: 'Remove ads, theme pack, bonus hints',
+                      title: l.settingsShop,
+                      subtitle: l.settingsShopSub,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ShopScreen()),
@@ -161,8 +164,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 10),
                     _LinkTile(
                       icon: Icons.palette_outlined,
-                      title: 'Themes',
-                      subtitle: 'Six palettes for the board',
+                      title: l.settingsThemes,
+                      subtitle: l.settingsThemesSub,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ThemesScreen()),
@@ -186,16 +189,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 10),
                       _LinkTile(
                         icon: Icons.privacy_tip_outlined,
-                        title: 'Privacy options',
-                        subtitle: 'Change your ad consent choices',
+                        title: l.settingsPrivacy,
+                        subtitle: l.settingsPrivacySub,
                         onTap: () => ConsentService.instance.showForm(),
                       ),
                     ],
                     const SizedBox(height: 10),
                     _LinkTile(
                       icon: Icons.restart_alt_rounded,
-                      title: 'Reset progress',
-                      subtitle: 'Start over from the first board',
+                      title: l.settingsReset,
+                      subtitle: l.settingsResetSub,
                       danger: true,
                       onTap: _confirmReset,
                     ),
@@ -254,9 +257,15 @@ class _StatCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Stat(label: 'Cleared', value: '$cleared'),
-          _Stat(label: 'Stars', value: '$stars'),
-          _Stat(label: 'Reached', value: '$unlocked'),
+          _Stat(
+              label: AppLocalizations.of(context).settingsStatCleared,
+              value: '$cleared'),
+          _Stat(
+              label: AppLocalizations.of(context).settingsStatStars,
+              value: '$stars'),
+          _Stat(
+              label: AppLocalizations.of(context).settingsStatReached,
+              value: '$unlocked'),
         ],
       ),
     );

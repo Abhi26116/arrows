@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../audio/sfx.dart';
 import '../data/progress_store.dart';
@@ -28,7 +29,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppHeader(title: 'Themes'),
+              AppHeader(title: AppLocalizations.of(context).themesTitle),
               if (!owned)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -43,7 +44,8 @@ class _ThemesScreenState extends State<ThemesScreen> {
                         );
                         if (mounted) setState(() {});
                       },
-                      child: const Text('Unlock Theme Pack in Shop'),
+                      child:
+                          Text(AppLocalizations.of(context).themesUnlockInShop),
                     ),
                   ),
                 ),

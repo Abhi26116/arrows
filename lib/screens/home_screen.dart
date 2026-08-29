@@ -126,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHome(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final store = AppStore.instance;
     final continueLevel = store.maxUnlocked.clamp(1, LevelCatalog.count);
     final dailyBest = store.dailyBestStars;
@@ -151,14 +152,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               CircleIconButton(
                                 icon: Icons.shopping_bag_outlined,
-                                tooltip: 'Shop',
+                                tooltip: l.tooltipShop,
                                 size: 44,
                                 onTap: () => _open(const ShopScreen()),
                               ),
                               const Spacer(),
                               CircleIconButton(
                                 icon: Icons.settings_rounded,
-                                tooltip: 'Settings',
+                                tooltip: l.tooltipSettings,
                                 size: 44,
                                 onTap: () => _open(const SettingsScreen()),
                               ),
@@ -188,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               begin: 0.15, end: 0, curve: Curves.easeOutCubic),
                           const SizedBox(height: 8),
                           Text(
-                            'Clear the board. Order is everything.',
+                            l.appTagline,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'DMSans',
@@ -204,19 +205,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               _MiniStat(
                                 icon: Icons.star_rounded,
                                 value: '${store.totalStars}',
-                                label: 'stars',
+                                label: l.statStars,
                               ),
                               const SizedBox(width: 16),
                               _MiniStat(
                                 icon: Icons.local_fire_department_rounded,
                                 value: '${store.dailyStreak}',
-                                label: 'streak',
+                                label: l.statStreak,
                               ),
                               const SizedBox(width: 16),
                               _MiniStat(
                                 icon: Icons.flag_rounded,
                                 value: '${store.clearedCount}',
-                                label: 'cleared',
+                                label: l.statCleared,
                               ),
                             ],
                           ),
@@ -232,8 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: Text(
                                 continueLevel <= 1 && store.clearedCount == 0
-                                    ? 'Play'
-                                    : 'Continue · $continueLevel',
+                                    ? l.actionStart
+                                    : l.actionContinue(continueLevel),
                               ),
                             ),
                           ),
@@ -254,13 +255,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   style: _outlineStyle(),
                                   child: dailyBest == null
-                                      ? const Text('Daily')
+                                      ? Text(l.navDaily)
                                       : Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            const Text('Daily · '),
-                                            Text('$dailyBest'),
+                                            Text(l.navDailyBest('$dailyBest')),
                                             Icon(Icons.star_rounded,
                                                 size: 15,
                                                 color: AppColors.accentSoft),
@@ -276,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _open(const LevelSelectScreen());
                                   },
                                   style: _outlineStyle(),
-                                  child: const Text('Levels'),
+                                  child: Text(l.navLevels),
                                 ),
                               ),
                             ],
@@ -286,17 +286,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               _Quick(
                                 icon: Icons.palette_outlined,
-                                label: 'Themes',
+                                label: l.navThemes,
                                 onTap: () => _open(const ThemesScreen()),
                               ),
                               _Quick(
                                 icon: Icons.history_rounded,
-                                label: 'Streak',
+                                label: l.navStreak,
                                 onTap: () => _open(const DailyHistoryScreen()),
                               ),
                               _Quick(
                                 icon: Icons.help_outline_rounded,
-                                label: 'How to',
+                                label: l.navHowTo,
                                 onTap: () => _open(const HowToPlayScreen()),
                               ),
                             ],

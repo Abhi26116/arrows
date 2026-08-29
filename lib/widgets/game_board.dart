@@ -114,8 +114,7 @@ class _GameBoardState extends State<GameBoard> with TickerProviderStateMixin {
       for (var dc = -1; dc <= 1; dc++) {
         final near = c.arrowAt(row + dr, col + dc);
         if (near == null) continue;
-        final center =
-            Offset((col + dc + 0.5) * cell, (row + dr + 0.5) * cell);
+        final center = Offset((col + dc + 0.5) * cell, (row + dr + 0.5) * cell);
         final distance = (center - p).distance;
         if (distance < bestDistance) {
           bestDistance = distance;
@@ -258,7 +257,8 @@ class _BoardPainter extends CustomPainter {
         final t = shake.value;
         final bump =
             math.sin(t * math.pi * 3) * cell * 0.22 * (1 - t).clamp(0.0, 1.0);
-        shift = Offset(arrow.direction.dCol * bump, arrow.direction.dRow * bump);
+        shift =
+            Offset(arrow.direction.dCol * bump, arrow.direction.dRow * bump);
       }
 
       _drawArrow(canvas, arrow, color, glow: glow, shift: shift);

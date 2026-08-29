@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../audio/sfx.dart';
 import '../config/app_config.dart';
@@ -40,6 +41,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final store = AppStore.instance;
     final iap = IapService.instance;
     final remove = iap.product(AppConfig.iapRemoveAds);
@@ -51,45 +53,42 @@ class _ShopScreenState extends State<ShopScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppHeader(title: 'Shop'),
+              AppHeader(title: l.shopTitle),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
                     _ProductCard(
-                      title: 'Remove Ads',
+                      title: l.shopRemoveAds,
                       subtitle: store.removeAdsOwned
-                          ? 'Owned'
-                          : (remove?.price ?? 'Non-consumable'),
-                      body:
-                          'No banners or interstitials. Rewarded hints stay free.',
+                          ? l.shopOwned
+                          : (remove?.price ?? l.shopNonConsumable),
+                      body: l.shopRemoveAdsBody,
                       owned: store.removeAdsOwned,
                       busy: _busy,
                       onBuy: () => _buy(AppConfig.iapRemoveAds),
                     ),
                     const SizedBox(height: 12),
                     _ProductCard(
-                      title: 'Theme Pack',
+                      title: l.shopThemePack,
                       subtitle: store.themePackOwned
-                          ? 'Owned'
-                          : (pack?.price ?? 'Non-consumable'),
-                      body: 'Unlock Aurora, Noir, and Solar themes forever.',
+                          ? l.shopOwned
+                          : (pack?.price ?? l.shopNonConsumable),
+                      body: l.shopThemePackBody,
                       owned: store.themePackOwned,
                       busy: _busy,
                       onBuy: () => _buy(AppConfig.iapThemePack),
                     ),
                     const SizedBox(height: 12),
                     _ProductCard(
-                      title: 'Bonus Hint',
-                      subtitle: store.adsEnabled ? 'Watch an ad' : 'Free',
+                      title: l.shopBonusHint,
+                      subtitle: store.adsEnabled ? l.shopWatchAnAd : l.shopFree,
                       body: store.adsEnabled
-                          ? 'Watch a short ad for a bonus hint '
-                              '(${store.bonusHints} ready).'
-                          : 'Ads are removed, so hints are on the house '
-                              '(${store.bonusHints} ready).',
+                          ? l.shopBonusHintWatch(store.bonusHints)
+                          : l.shopBonusHintFree(store.bonusHints),
                       owned: false,
                       busy: _busy,
-                      cta: store.adsEnabled ? 'Watch' : 'Claim',
+                      cta: store.adsEnabled ? l.shopWatch : l.shopClaim,
                       onBuy: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         setState(() => _busy = true);
@@ -100,9 +99,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(
-                                ok
-                                    ? 'Bonus hint added'
-                                    : 'Ad not ready — try again in a moment.',
+                                ok ? l.shopHintAdded : l.shopAdNotReady,
                               ),
                             ),
                           );
@@ -118,12 +115,11 @@ class _ShopScreenState extends State<ShopScreen> {
                               await IapService.instance.restore();
                               if (mounted) setState(() => _busy = false);
                             },
-                      child: const Text('Restore purchases'),
+                      child: Text(l.shopRestore),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Purchases are tied to your store account and can be '
-                      'restored on any device you sign in to.',
+                      l.shopRestoreNote,
                       style: TextStyle(color: AppColors.muted, fontSize: 12),
                     ),
                     if (kDebugMode && !AppConfig.screenshotMode) ...[
@@ -201,7 +197,9 @@ class _ProductCard extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: owned || busy ? null : onBuy,
-              child: Text(owned ? 'Owned' : (cta ?? 'Buy')),
+              child: Text(owned
+                  ? AppLocalizations.of(context).shopOwned
+                  : (cta ?? AppLocalizations.of(context).shopBuy)),
             ),
           ),
         ],

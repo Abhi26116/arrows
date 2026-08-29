@@ -34,6 +34,8 @@
   "gameReplay": "Jogar de novo",
   "gameNext": "Próximo",
   "gameDone": "Pronto",
+  "gameOutOfHearts": "SEM CORAÇÕES",
+  "gameArrowsCleared": "{cleared} de {total} setas limpas",
   "gameOverTitle": "Sem corações",
   "gameOverBody": "O tabuleiro reinicia. Assista a um anúncio curto para ganhar mais um coração, ou comece de novo.",
   "gameExtraHeart": "Mais um coração",

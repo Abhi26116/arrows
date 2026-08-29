@@ -19,6 +19,7 @@ import 'package:arrows_game/main.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:arrows_game/widgets/game_board.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -66,8 +67,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // Hundreds of PNG encodes; the 30-second default is nowhere near enough.
-  testWidgets('record app preview', timeout: const Timeout(Duration(minutes: 30)),
-      (tester) async {
+  testWidgets('record app preview',
+      timeout: const Timeout(Duration(minutes: 30)), (tester) async {
     if (_framesDir.isEmpty) {
       fail('Pass --dart-define=FRAMES_DIR=<dir>');
     }
@@ -105,6 +106,8 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.dark,
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           // The wrapper the real app installs — without it the iPad recording
           // would show a phone-sized interface at iPad dimensions.
           builder: (context, child) => TabletScale(child: child!),
@@ -115,8 +118,8 @@ void main() {
 
     var frame = 0;
     Future<void> capture() async {
-      final boundary =
-          captureKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final boundary = captureKey.currentContext!.findRenderObject()
+          as RenderRepaintBoundary;
       final name = 'frame_${(frame++).toString().padLeft(4, '0')}.png';
       // PNG encoding never finishes inside the test's fake-async zone — it
       // needs real time to run in, which is what runAsync provides.
@@ -146,8 +149,7 @@ void main() {
       final cell = (box.width / c.cols) < (box.height / c.rows)
           ? box.width / c.cols
           : box.height / c.rows;
-      final origin = box.center -
-          Offset(cell * c.cols / 2, cell * c.rows / 2);
+      final origin = box.center - Offset(cell * c.cols / 2, cell * c.rows / 2);
       return origin + Offset((col + 0.5) * cell, (row + 0.5) * cell);
     }
 

@@ -23,6 +23,7 @@ import 'package:arrows_game/screens/shop_screen.dart';
 import 'package:arrows_game/services/iap_service.dart';
 import 'package:arrows_game/screens/themes_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -83,6 +84,8 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         theme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         // The same wrapper the real app installs, so the tablet shots show the
         // enlarged interface an iPad actually gets rather than a phone one.
         builder: (context, child) => TabletScale(child: child!),
@@ -100,8 +103,8 @@ void main() {
 
     group(platform, () {
       testWidgets('01 hard board', (t) async {
-        await shot(t, GameScreen(customLevel: LevelCatalog.byId(56)),
-            '01_hard_board');
+        await shot(
+            t, GameScreen(customLevel: LevelCatalog.byId(56)), '01_hard_board');
       });
       testWidgets('02 home', (t) => shot(t, const HomeScreen(), '02_home'));
       testWidgets('03 expert board', (t) async {

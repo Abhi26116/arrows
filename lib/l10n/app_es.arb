@@ -34,6 +34,8 @@
   "gameReplay": "Repetir",
   "gameNext": "Siguiente",
   "gameDone": "Listo",
+  "gameOutOfHearts": "SIN CORAZONES",
+  "gameArrowsCleared": "{cleared} de {total} flechas despejadas",
   "gameOverTitle": "Sin corazones",
   "gameOverBody": "El tablero se reinicia. Mira un anuncio corto para conseguir otro corazón, o vuelve a empezar.",
   "gameExtraHeart": "Otro corazón",

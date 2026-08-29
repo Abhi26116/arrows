@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../theme/app_theme.dart';
 
@@ -102,7 +103,7 @@ class AppHeader extends StatelessWidget {
             CircleIconButton(
               icon: Icons.play_arrow_rounded,
               flipped: true,
-              tooltip: 'Back',
+              tooltip: AppLocalizations.of(context).tooltipBack,
               onTap: onBack ?? () => Navigator.pop(context),
             ),
             const SizedBox(width: 14),

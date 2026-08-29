@@ -248,9 +248,8 @@ class _MiniBoardPainter extends CustomPainter {
         color: highlighted ? glowColor : color,
         cell: cell,
         glow: highlighted,
-        opacity: highlighted
-            ? 0.75 + 0.25 * (0.5 + 0.5 * math.sin(t * 1.5))
-            : 1,
+        opacity:
+            highlighted ? 0.75 + 0.25 * (0.5 + 0.5 * math.sin(t * 1.5)) : 1,
       );
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../audio/sfx.dart';
 import '../data/progress_store.dart';
@@ -61,7 +62,7 @@ class DailyHistoryScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppHeader(title: 'Daily'),
+              AppHeader(title: AppLocalizations.of(context).dailyTitle),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(

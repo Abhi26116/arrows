@@ -3,6 +3,7 @@ import 'package:arrows_game/logic/level_generator.dart';
 import 'package:arrows_game/screens/level_select_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,6 +22,8 @@ void main() {
     });
     await AppStore.instance.init();
     await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.dark,
       home: const LevelSelectScreen(),
     ));

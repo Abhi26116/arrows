@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../data/progress_store.dart';
 import '../models/direction.dart';
@@ -13,13 +14,14 @@ class HowToPlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: AtmosphereBackground(
         child: SafeArea(
           child: Column(
             children: [
               AppHeader(
-                title: 'How to Play',
+                title: l.howToTitle,
                 showBack: !fromOnboarding,
               ),
               // The steps and the button are one block, held to the top. On a
@@ -42,9 +44,8 @@ class HowToPlayScreen extends StatelessWidget {
                           children: [
                             _Step(
                               number: '1',
-                              title: 'Tap an arrow',
-                              body:
-                                  'It flies in the direction it points — up, down, left, or right.',
+                              title: l.howToStep1Title,
+                              body: l.howToStep1Body,
                               trailing: ArrowGlyph(
                                 direction: Direction.right,
                                 color: AppColors.arrowLine,
@@ -52,33 +53,25 @@ class HowToPlayScreen extends StatelessWidget {
                                 glow: true,
                               ),
                             ),
-                            const _Step(
+                            _Step(
                               number: '2',
-                              title: 'Clear path = gone',
-                              body:
-                                  'If nothing sits on its path to the edge, the whole '
-                                  'arrow slides off — however long it is.',
+                              title: l.howToStep2Title,
+                              body: l.howToStep2Body,
                             ),
-                            const _Step(
+                            _Step(
                               number: '3',
-                              title: 'Long arrows block more',
-                              body:
-                                  'An arrow blocks every cell along its body, not just '
-                                  'its head. Read the whole line before you tap.',
+                              title: l.howToStep3Title,
+                              body: l.howToStep3Body,
                             ),
-                            const _Step(
+                            _Step(
                               number: '4',
-                              title: 'Three hearts',
-                              body:
-                                  'A blocked tap costs a heart. Lose all three and the '
-                                  'board resets — hearts left become your stars.',
+                              title: l.howToStep4Title,
+                              body: l.howToStep4Body,
                             ),
-                            const _Step(
+                            _Step(
                               number: '5',
-                              title: 'Clear them all',
-                              body:
-                                  'Empty the board to win. Tap the grid button to show '
-                                  'cell lines, or Hint when you are stuck.',
+                              title: l.howToStep5Title,
+                              body: l.howToStep5Body,
                             ),
                           ],
                         ),
@@ -94,8 +87,8 @@ class HowToPlayScreen extends StatelessWidget {
                                 Navigator.pop(context, true);
                               }
                             },
-                            child:
-                                Text(fromOnboarding ? 'Got it — Play' : 'Done'),
+                            child: Text(
+                                fromOnboarding ? l.howToGotIt : l.howToDone),
                           ),
                         ),
                       ),
