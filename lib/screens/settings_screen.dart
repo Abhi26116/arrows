@@ -6,7 +6,6 @@ import '../services/consent_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/arrow_glyph.dart';
-import 'leaderboard_screen.dart';
 import 'shop_screen.dart';
 import 'themes_screen.dart';
 
@@ -154,17 +153,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ThemesScreen()),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _LinkTile(
-                      icon: Icons.emoji_events_outlined,
-                      title: 'Leaderboard',
-                      subtitle: 'Stars and boards cleared',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const LeaderboardScreen()),
                       ),
                     ),
                     if (_consentFormAvailable) ...[

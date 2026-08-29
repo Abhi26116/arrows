@@ -21,6 +21,13 @@ class LeaderboardEntry {
   final bool isYou;
 }
 
+/// Unused in 1.0 — [LeaderboardScreen] is the only caller and nothing
+/// navigates to it.
+///
+/// Before this ships, the invented entries in [_upsertLocal] have to go: they
+/// appear beside the player as though they were other people. Ranking only
+/// means anything against a real backend, so wire one up rather than reviving
+/// this as-is.
 class LeaderboardService {
   LeaderboardService._();
   static final LeaderboardService instance = LeaderboardService._();

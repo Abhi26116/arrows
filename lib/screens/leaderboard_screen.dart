@@ -10,6 +10,10 @@ import '../theme/app_theme.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/arrow_glyph.dart';
 
+/// Not reachable in 1.0 — nothing navigates here. The board it shows is local
+/// to the device and seeded with invented players, which is not something to
+/// put in front of a store reviewer or a real player. Kept whole so a genuine
+/// online board can be wired up for a later release; see [LeaderboardService].
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
 

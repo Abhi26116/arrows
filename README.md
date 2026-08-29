@@ -11,7 +11,6 @@ off; tap a blocked one and it costs a heart.
 - 80 levels (Easy → Expert) + daily challenge (history + streak)
 - Multi-cell arrows, 3 hearts per board, progress bar, optional cell grid
 - Themes (free + premium pack)
-- Leaderboard (local → Firebase when configured)
 - Ads (test IDs) + IAP (Remove Ads, Theme Pack)
 - Sound, haptics, hints, undo, stars
 

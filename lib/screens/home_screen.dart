@@ -12,7 +12,6 @@ import '../widgets/arrow_glyph.dart';
 import 'daily_history_screen.dart';
 import 'game_screen.dart';
 import 'how_to_play_screen.dart';
-import 'leaderboard_screen.dart';
 import 'level_select_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
@@ -216,11 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 10),
                           Row(
                             children: [
-                              _Quick(
-                                icon: Icons.emoji_events_outlined,
-                                label: 'Ranks',
-                                onTap: () => _open(const LeaderboardScreen()),
-                              ),
                               _Quick(
                                 icon: Icons.palette_outlined,
                                 label: 'Themes',
