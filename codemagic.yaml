@@ -43,13 +43,28 @@ workflows:
           flutter config --no-enable-swift-package-manager
       - *flutter_packages
       - *analyze_and_test
+      - name: Apply Flutter's Xcode project migrations
+        script: |
+          # `flutter build ipa` rewrites project.pbxproj on first run (raises
+          # the deployment target, migrates to the UIScene lifecycle). Left to
+          # the build step that happens *after* signing is configured, so get
+          # it out of the way first.
+          flutter build ios --config-only --release
       - name: Set up code signing
         script: |
-          # `ios_signing:` in the environment only *looks for* a profile that
-          # already exists, and this Apple account has never produced one for
-          # this bundle id — hence "No matching profiles found". Ask for it to
-          # be created instead. --create also issues the distribution
-          # certificate when the account has none.
+          # The project hard-codes a development identity and team so the app
+          # can be run on the dev Mac's own iPhone. On CI that makes Flutter
+          # archive with automatic signing and look for an *iOS App Development*
+          # profile, which is not what an App Store build needs. Drop both here
+          # — use-profiles writes the correct manual App Store values back, and
+          # the checkout is thrown away afterwards, so local signing is
+          # untouched.
+          sed -i '' -E \
+            '/^[[:space:]]*("CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]"|DEVELOPMENT_TEAM|CODE_SIGN_STYLE) = /d' \
+            ios/Runner.xcodeproj/project.pbxproj
+          # Nothing has ever built this bundle id for the App Store, so there is
+          # no profile to fetch — --create makes one, and issues the
+          # distribution certificate if the account has none.
           keychain initialize
           app-store-connect fetch-signing-files "com.arrowsgame.arrowsGame" \
             --type IOS_APP_STORE \
