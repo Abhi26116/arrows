@@ -65,12 +65,29 @@ workflows:
           # Nothing has ever built this bundle id for the App Store, so there is
           # no profile to fetch — --create makes one, and issues the
           # distribution certificate if the account has none.
+          set -e
           keychain initialize
           app-store-connect fetch-signing-files "com.arrowsgame.arrowsGame" \
             --type IOS_APP_STORE \
             --create
           keychain add-certificates
-          xcode-project use-profiles
+          # Name the project explicitly rather than letting it search; the
+          # archive reported "Runner requires a provisioning profile", so the
+          # settings were not reaching this project.
+          xcode-project use-profiles --project ios/Runner.xcodeproj
+
+          echo "===== profiles installed ====="
+          ls -1 "$HOME/Library/MobileDevice/Provisioning Profiles" 2>&1 || true
+          echo "===== signing certificates in keychain ====="
+          security find-identity -p codesigning -v 2>&1 || true
+          echo "===== signing settings now in the project ====="
+          grep -nE "CODE_SIGN_STYLE|PROVISIONING_PROFILE|DEVELOPMENT_TEAM|CODE_SIGN_IDENTITY" \
+            ios/Runner.xcodeproj/project.pbxproj || echo "NONE FOUND"
+          echo "===== what Xcode resolves for Release ====="
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -showBuildSettings 2>/dev/null \
+            | grep -E "PROVISIONING_PROFILE|CODE_SIGN_STYLE|CODE_SIGN_IDENTITY|DEVELOPMENT_TEAM|PRODUCT_BUNDLE_IDENTIFIER" \
+            || echo "could not read build settings"
       - name: Archive and export the IPA
         script: |
           # Codemagic's own tool, not Flutter's: it archives and exports with
