@@ -25,6 +25,7 @@ const _devices = <String, (Size, double)>{
   'ios': (Size(1290, 2796), 3),
   'ipad': (Size(2048, 2732), 2),
   'android': (Size(1080, 2400), 3),
+  'android_tablet': (Size(1600, 2560), 2),
 };
 
 /// The listing, in order. The first two do the selling; the rest answer the
