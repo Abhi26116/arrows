@@ -55,6 +55,10 @@ class AppConfig {
   /// ignores the override everywhere else.
   static const bool consentTestEea = bool.fromEnvironment('CONSENT_TEST_EEA');
 
+  /// Set by `tool/store_screenshots.dart` so developer-only scaffolding is
+  /// left out of generated store images. Never passed by a real build.
+  static const bool screenshotMode = bool.fromEnvironment('SCREENSHOT_MODE');
+
   /// UMP test devices. **Not** the same ids as [testDeviceIds] — take this one
   /// from the log line "Use ConsentDebugSettings.Builder()
   /// .addTestDeviceHashedId("<id>")" printed on the first run.

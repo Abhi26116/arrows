@@ -1,7 +1,11 @@
 // Generates store-ready screenshots at the exact pixel sizes Apple and Google
 // ask for. Not part of the normal test suite — run it deliberately:
 //
-//   flutter test tool/store_screenshots.dart --update-goldens
+//   flutter test tool/store_screenshots.dart --update-goldens \
+//     --dart-define=SCREENSHOT_MODE=true
+//
+// SCREENSHOT_MODE keeps kDebugMode-only developer notes out of the images —
+// goldens always run in debug, so without it they render into the shots.
 //
 // Output lands in store/screenshots/{ios,android}/.
 import 'dart:io';
@@ -11,11 +15,14 @@ import 'package:arrows_game/logic/level_generator.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/screens/home_screen.dart';
 import 'package:arrows_game/screens/level_select_screen.dart';
+import 'package:arrows_game/screens/shop_screen.dart';
+import 'package:arrows_game/services/iap_service.dart';
 import 'package:arrows_game/screens/themes_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _materialFonts =
@@ -94,6 +101,58 @@ void main() {
       });
       testWidgets('05 themes', (t) async {
         await shot(t, const ThemesScreen(), '05_themes');
+      });
+      // Not a store listing shot — this is the one Apple and Google ask for
+      // when reviewing the in-app purchases, so both products have to be
+      // showing as still buyable rather than owned.
+      testWidgets('06 shop', (t) async {
+        // With ads back on, the screen builds an AdBanner and the ads SDK is
+        // not present under `flutter test`; swallow its channel calls so the
+        // banner just renders empty.
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/google_mobile_ads'),
+          (call) async => null,
+        );
+        // setUp marks both as owned so the listing shots have no ad banner.
+        // Go through AppStore's own setters: it caches SharedPreferences on
+        // first init, so a freshly mocked instance would not reach it.
+        await AppStore.instance.setRemoveAdsOwned(false);
+        await AppStore.instance.setThemePackOwned(false);
+        // AppStore holds the SharedPreferences instance it cached on the very
+        // first init, so setUp's re-mock cannot undo this — put it back here or
+        // every later shot renders an ad banner.
+        addTearDown(() async {
+          // Back to exactly what setUp establishes: ads removed (so no banner
+          // in the listing shots) and the theme pack still locked (so the
+          // themes shot keeps showing its padlocks and upsell).
+          await AppStore.instance.setRemoveAdsOwned(true);
+          await AppStore.instance.setThemePackOwned(false);
+        });
+        // The store is not reachable under `flutter test`, so prices would
+        // read "Non-consumable". Stand in the real ones.
+        IapService.instance.products = [
+          ProductDetails(
+            id: 'arrows_remove_ads',
+            title: 'Remove Ads',
+            description: 'No banners or interstitials.',
+            price: r'$1.99',
+            rawPrice: 1.99,
+            currencyCode: 'USD',
+            currencySymbol: r'$',
+          ),
+          ProductDetails(
+            id: 'arrows_theme_pack',
+            title: 'Theme Pack',
+            description: 'Aurora, Noir and Solar themes.',
+            price: r'$0.99',
+            rawPrice: 0.99,
+            currencyCode: 'USD',
+            currencySymbol: r'$',
+          ),
+        ];
+        addTearDown(() => IapService.instance.products = []);
+        await shot(t, const ShopScreen(), '06_shop');
       });
     });
   }

@@ -12,7 +12,10 @@ class IapService {
   IapService._();
   static final IapService instance = IapService._();
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  /// Resolved on demand. Reading `InAppPurchase.instance` registers the
+  /// platform addition and opens a billing connection on Android, which must
+  /// not happen merely because something touched this singleton.
+  InAppPurchase get _iap => InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _sub;
   bool available = false;
   List<ProductDetails> products = [];

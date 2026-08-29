@@ -126,7 +126,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       'restored on any device you sign in to.',
                       style: TextStyle(color: AppColors.muted, fontSize: 12),
                     ),
-                    if (kDebugMode) ...[
+                    if (kDebugMode && !AppConfig.screenshotMode) ...[
                       const SizedBox(height: 12),
                       Text(
                         'Debug: products "${AppConfig.iapRemoveAds}" and '
