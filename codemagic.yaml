@@ -28,6 +28,9 @@ workflows:
     integrations:
       app_store_connect: codemagic-admin
     environment:
+      groups:
+        # Holds CERTIFICATE_PRIVATE_KEY — see the signing step below.
+        - ios_signing
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -67,8 +70,16 @@ workflows:
           # distribution certificate if the account has none.
           set -e
           keychain initialize
+          # This Apple account's existing distribution certificate was issued on
+          # another machine, so its private key is not here and Apple never
+          # hands one out — "Cannot save Signing Certificates without
+          # certificate private key". Supplying our own key makes Apple issue a
+          # certificate against it, and because the key is stored in Codemagic
+          # rather than generated per build, every build reuses that same
+          # certificate instead of burning through Apple's limit of three.
           app-store-connect fetch-signing-files "com.arrowsgame.arrowsGame" \
             --type IOS_APP_STORE \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
           keychain add-certificates
           # Name the project explicitly rather than letting it search; the
