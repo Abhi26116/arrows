@@ -2,16 +2,13 @@
 // frame. Not part of the normal test suite — run it deliberately:
 //
 //   flutter test tool/app_preview.dart --dart-define=SCREENSHOT_MODE=true \
-//     --dart-define=FRAMES_DIR=/path/to/frames
+//     --dart-define=FRAMES_DIR=/path/to/frames --dart-define=DEVICE=iphone
 //
 // then stitch the frames with tool/app_preview.sh, which is what you actually
-// run. Nothing here is faked: it drives the same GameScreen the app ships,
-// taps arrows the game reports as clearable, and captures whatever the widget
-// tree draws — including the flight and settle animations.
-//
-// 886x1920 is the App Store's portrait preview size for 6.5"/6.7" iPhones, and
-// it is the same 0.4614 aspect as the 1290x2796 screenshots, so the layout is
-// identical to the one in the store images.
+// run — it does both devices. Nothing here is faked: it drives the same
+// GameScreen the app ships, taps arrows the game reports as clearable, and
+// captures whatever the widget tree draws, flight and settle animations
+// included.
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -32,10 +29,22 @@ const _materialFonts =
 
 const _framesDir = String.fromEnvironment('FRAMES_DIR');
 
-/// Logical size that renders to 886x1920 at 2x — a believable phone, not a
-/// stretched one.
-const _logical = Size(443, 960);
-const _pixelRatio = 2.0;
+const _device = String.fromEnvironment('DEVICE', defaultValue: 'iphone');
+
+/// Logical sizes are real device sizes, so each preview is laid out exactly as
+/// that device would lay it out — the iPad one has to be a genuine iPad width
+/// or ContentBounds would not kick in and it would record a phone layout.
+///
+/// The pixel ratios then land each recording on the App Store's preview size:
+/// 886x1920 for a 6.5"/6.7" iPhone, and 1200x1600 for a 12.9" iPad (the iPad
+/// comes out a pixel or two tall and is cropped when it is encoded).
+const _sizes = <String, (Size, double)>{
+  'iphone': (Size(443, 960), 2.0),
+  'ipad': (Size(1024, 1366), 1200 / 1024),
+};
+
+Size get _logical => _sizes[_device]!.$1;
+double get _pixelRatio => _sizes[_device]!.$2;
 
 /// 30fps, which is what the App Store expects.
 const _frameStep = Duration(milliseconds: 33);
@@ -60,6 +69,9 @@ void main() {
       (tester) async {
     if (_framesDir.isEmpty) {
       fail('Pass --dart-define=FRAMES_DIR=<dir>');
+    }
+    if (!_sizes.containsKey(_device)) {
+      fail('DEVICE must be one of ${_sizes.keys.join(", ")}');
     }
     final dir = Directory(_framesDir)..createSync(recursive: true);
 
