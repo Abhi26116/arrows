@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -27,7 +28,14 @@ Future<void> main() async {
   await ThemeController.instance.load();
   await SoundService.instance.init();
   await FirebaseBootstrap.init();
-  await IapService.instance.init();
+  // Deliberately not awaited. init() asks StoreKit whether purchases are
+  // available, queries the products and restores past purchases — three
+  // network round trips. Awaiting them here holds back runApp, so a slow or
+  // unreachable store leaves the launch screen up with nothing behind it, and
+  // iOS terminates an app that takes too long to draw its first frame. The
+  // Shop reads the products when it opens and shows placeholders until they
+  // land; nothing else needs them at startup.
+  unawaited(IapService.instance.init());
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(

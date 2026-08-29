@@ -72,9 +72,7 @@ class AdsService {
       : (_live ? AppConfig.androidRewardedAdUnitId : AdTestIds.androidRewarded);
 
   String get _interstitialId => Platform.isIOS
-      ? (_live
-          ? AppConfig.iosInterstitialAdUnitId
-          : AdTestIds.iosInterstitial)
+      ? (_live ? AppConfig.iosInterstitialAdUnitId : AdTestIds.iosInterstitial)
       : (_live
           ? AppConfig.androidInterstitialAdUnitId
           : AdTestIds.androidInterstitial);
@@ -144,26 +142,47 @@ class AdsService {
       loadRewarded();
       return false;
     }
+    // Hand the ad over now: show() returns long before the ad closes, and a
+    // second caller must not be able to show this same one.
+    _rewarded = null;
+
+    // show() completes once the ad has been *presented*, not once the viewer
+    // is done with it, and the reward arrives later still. Returning at that
+    // point reported failure for every ad anyone ever watched. Wait for the
+    // ad to close instead.
+    final closed = Completer<bool>();
     var earned = false;
+    void finish() {
+      if (!closed.isCompleted) closed.complete(earned);
+    }
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        _rewarded = null;
         loadRewarded();
+        finish();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        debugPrint('Rewarded failed to show: $error');
         ad.dispose();
-        _rewarded = null;
         loadRewarded();
+        finish();
       },
     );
+
     await ad.show(
       onUserEarnedReward: (ad, reward) async {
         earned = true;
         await onReward?.call();
       },
     );
-    return earned;
+
+    // If the SDK never reports the ad closing, honour whatever was earned
+    // rather than leaving the caller waiting on a future that never lands.
+    return closed.future.timeout(
+      const Duration(minutes: 5),
+      onTimeout: () => earned,
+    );
   }
 
   Future<void> maybeShowInterstitialAfterWin() async {
@@ -175,20 +194,37 @@ class AdsService {
       loadInterstitial();
       return;
     }
+    _interstitial = null;
+
+    // Same as the rewarded ad: show() returns as soon as the ad is on screen.
+    // Returning there let the win panel and the next screen run underneath it.
+    final closed = Completer<bool>();
+    void finish({required bool shown}) {
+      if (!closed.isCompleted) closed.complete(shown);
+    }
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        _interstitial = null;
         loadInterstitial();
+        finish(shown: true);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        debugPrint('Interstitial failed to show: $error');
         ad.dispose();
-        _interstitial = null;
         loadInterstitial();
+        finish(shown: false);
       },
     );
+
     await ad.show();
-    await AppStore.instance.resetWinsSinceInterstitial();
+    final shown = await closed.future.timeout(
+      const Duration(minutes: 5),
+      onTimeout: () => true,
+    );
+    // Only spend the counter on an ad the player actually saw, so a failed
+    // show does not cost them three wins' worth of quiet.
+    if (shown) await AppStore.instance.resetWinsSinceInterstitial();
   }
 
   void dispose() {
