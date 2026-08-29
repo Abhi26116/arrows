@@ -83,7 +83,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                             pack.name,
                             style: TextStyle(
                               fontFamily: 'DMSans',
-                              fontVariations: const [FontVariation('wght', 700)],
+                              fontVariations: const [
+                                FontVariation('wght', 700)
+                              ],
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: AppColors.muted,

@@ -132,8 +132,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         'Debug: products "${AppConfig.iapRemoveAds}" and '
                         '"${AppConfig.iapThemePack}" must exist in Play Console '
                         '/ App Store Connect.',
-                        style:
-                            TextStyle(color: AppColors.muted, fontSize: 11),
+                        style: TextStyle(color: AppColors.muted, fontSize: 11),
                       ),
                     ],
                   ],

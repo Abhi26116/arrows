@@ -9,8 +9,18 @@ import '../widgets/arrow_glyph.dart';
 import 'game_screen.dart';
 
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -158,7 +168,9 @@ class DailyHistoryScreen extends StatelessWidget {
                                         _prettyDate(r.date),
                                         style: const TextStyle(
                                           fontFamily: 'DMSans',
-                                          fontVariations: [FontVariation('wght', 700)],
+                                          fontVariations: [
+                                            FontVariation('wght', 700)
+                                          ],
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),

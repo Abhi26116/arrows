@@ -185,7 +185,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   '${i + 1}',
                                   style: TextStyle(
                                     fontFamily: 'DMSans',
-                                    fontVariations: const [FontVariation('wght', 700)],
+                                    fontVariations: const [
+                                      FontVariation('wght', 700)
+                                    ],
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.muted,
                                   ),
@@ -196,7 +198,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   e.isYou ? '${e.name} (you)' : e.name,
                                   style: const TextStyle(
                                     fontFamily: 'DMSans',
-                                    fontVariations: [FontVariation('wght', 700)],
+                                    fontVariations: [
+                                      FontVariation('wght', 700)
+                                    ],
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../audio/sfx.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import '../data/progress_store.dart';
 import '../logic/game_controller.dart';
 import '../logic/level_generator.dart';
@@ -8,6 +10,7 @@ import '../models/arrow.dart';
 import '../models/level.dart';
 import '../services/ads_service.dart';
 import '../services/leaderboard_service.dart';
+import '../services/review_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/arrow_glyph.dart';
 import '../widgets/app_chrome.dart';
@@ -129,6 +132,7 @@ class _GameScreenState extends State<GameScreen> {
       if (!mounted) return;
       await _showWin(stars);
       await AdsService.instance.maybeShowInterstitialAfterWin();
+      if (mounted) await _maybeAskForReview();
     } else {
       setState(() {});
     }
@@ -136,6 +140,54 @@ class _GameScreenState extends State<GameScreen> {
 
   /// One star per heart still beating.
   int _calcStars() => _session.lives.clamp(1, PlaySession.maxLives);
+
+  /// Only ever after a win, and only after enough boards that the player has
+  /// an opinion worth giving. [ReviewService] decides; this just asks nicely
+  /// first, so nobody is dropped into the store's own sheet unprompted.
+  Future<void> _maybeAskForReview() async {
+    if (!await ReviewService.instance
+        .shouldAsk(AppStore.instance.clearedCount)) {
+      return;
+    }
+    if (!mounted) return;
+    final l = AppLocalizations.of(context);
+    final rate = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l.reviewTitle,
+          style: TextStyle(
+            fontFamily: 'DMSans',
+            fontVariations: const [FontVariation('wght', 700)],
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+        content: Text(
+          l.reviewBody,
+          style: TextStyle(color: AppColors.muted, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text(l.reviewLater, style: TextStyle(color: AppColors.muted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.reviewRate),
+          ),
+        ],
+      ),
+    );
+    if (rate == true) {
+      await ReviewService.instance.accepted();
+    } else {
+      await ReviewService.instance.declined();
+    }
+  }
 
   Future<void> _showWin(int stars) async {
     final hasNext = !widget.isDaily &&

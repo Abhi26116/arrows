@@ -9,6 +9,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({
       'seen_how_to': true,
+      // Onboarding now asks for a language before the rules, and these tests
+      // are about what the player sees once onboarding is behind them.
+      'settings_chose_language': true,
     });
     await AppStore.instance.init();
   });

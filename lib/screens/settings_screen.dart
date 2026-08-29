@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../audio/sfx.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import '../data/progress_store.dart';
 import '../services/consent_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/arrow_glyph.dart';
+import 'language_screen.dart';
 import 'shop_screen.dart';
 import 'themes_screen.dart';
 
@@ -30,13 +33,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _consentFormAvailable = available);
   }
 
+  /// The active language, named in itself. Falls back to the system entry when
+  /// nothing has been chosen.
+  String _currentLanguageName(BuildContext context) {
+    final code = AppStore.instance.localeCode;
+    if (code == null) return AppLocalizations.of(context).languageSystem;
+    for (final lang in languages) {
+      if (lang.code == code) return lang.name;
+    }
+    return code;
+  }
+
   Future<void> _confirmReset() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Reset progress?',
           style: TextStyle(
@@ -153,6 +166,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ThemesScreen()),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _LinkTile(
+                      icon: Icons.translate_rounded,
+                      title: AppLocalizations.of(context).settingsLanguage,
+                      // The language currently in use, written in itself, so
+                      // it is recognisable to someone who has ended up in a
+                      // language they cannot read.
+                      subtitle: _currentLanguageName(context),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const LanguageScreen()),
                       ),
                     ),
                     if (_consentFormAvailable) ...[
@@ -295,7 +322,9 @@ class _ToggleTile extends StatelessWidget {
           title,
           style: const TextStyle(
               fontFamily: 'DMSans',
-              fontVariations: [FontVariation('wght', 700)], fontWeight: FontWeight.w700, fontSize: 16),
+              fontVariations: [FontVariation('wght', 700)],
+              fontWeight: FontWeight.w700,
+              fontSize: 16),
         ),
         subtitle: Text(subtitle,
             style: TextStyle(color: AppColors.muted, fontSize: 12)),

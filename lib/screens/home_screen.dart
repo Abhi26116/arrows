@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide Direction;
 
 import '../audio/sfx.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import '../data/progress_store.dart';
 import '../logic/daily_challenge.dart';
 import '../logic/level_generator.dart';
@@ -11,7 +13,9 @@ import '../widgets/app_chrome.dart';
 import '../widgets/arrow_glyph.dart';
 import 'daily_history_screen.dart';
 import 'game_screen.dart';
+import '../services/update_service.dart';
 import 'how_to_play_screen.dart';
+import 'language_screen.dart';
 import 'level_select_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
@@ -28,11 +32,31 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowHowTo());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onFirstFrame());
   }
 
-  Future<void> _maybeShowHowTo() async {
-    if (AppStore.instance.seenHowTo) return;
+  Future<void> _onFirstFrame() async {
+    await _maybeShowOnboarding();
+    if (mounted) await _maybeOfferUpdate();
+  }
+
+  /// Language first, then the rules — there is no point explaining the game in
+  /// a language the player did not choose.
+  Future<void> _maybeShowOnboarding() async {
+    final store = AppStore.instance;
+    if (!store.chosenLanguage) {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LanguageScreen(onboarding: true),
+        ),
+      );
+    }
+    if (store.seenHowTo) {
+      if (mounted) setState(() {});
+      return;
+    }
     if (!mounted) return;
     await Navigator.push(
       context,
@@ -41,6 +65,51 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (mounted) setState(() {});
+  }
+
+  /// Checked on the home screen rather than at launch: it is a network call,
+  /// and it must never be the reason the game is slow to open.
+  Future<void> _maybeOfferUpdate() async {
+    if (!await UpdateService.instance.check()) return;
+    if (!mounted) return;
+    final l = AppLocalizations.of(context);
+    final version = UpdateService.instance.available;
+    final update = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l.updateTitle,
+          style: TextStyle(
+            fontFamily: 'DMSans',
+            fontVariations: const [FontVariation('wght', 700)],
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+        content: Text(
+          l.updateBody(version ?? ''),
+          style: TextStyle(color: AppColors.muted, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text(l.updateLater, style: TextStyle(color: AppColors.muted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.updateNow),
+          ),
+        ],
+      ),
+    );
+    if (update == true) {
+      await UpdateService.instance.start();
+    } else {
+      await UpdateService.instance.declined();
+    }
   }
 
   Future<void> _open(Widget page) async {

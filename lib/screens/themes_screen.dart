@@ -36,11 +36,11 @@ class _ThemesScreenState extends State<ThemesScreen> {
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: () async {
-                      SoundService.instance.play(Sfx.tap);
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ShopScreen()),
-                      );
+                        SoundService.instance.play(Sfx.tap);
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ShopScreen()),
+                        );
                         if (mounted) setState(() {});
                       },
                       child: const Text('Unlock Theme Pack in Shop'),
@@ -96,7 +96,9 @@ class _ThemesScreenState extends State<ThemesScreen> {
                                     theme.name,
                                     style: TextStyle(
                                       fontFamily: 'DMSans',
-                                      fontVariations: const [FontVariation('wght', 700)],
+                                      fontVariations: const [
+                                        FontVariation('wght', 700)
+                                      ],
                                       fontWeight: FontWeight.w700,
                                       fontSize: 18,
                                       color: theme.ink,
@@ -127,8 +129,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
                               decoration: BoxDecoration(
                                 color: theme.bgTop,
                                 borderRadius: BorderRadius.circular(10),
-                                border:
-                                    Border.all(color: theme.surfaceHigh),
+                                border: Border.all(color: theme.surfaceHigh),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

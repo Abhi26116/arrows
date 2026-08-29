@@ -55,8 +55,7 @@ class ConsentService {
   Future<void> _requestTracking() async {
     if (!Platform.isIOS) return;
     try {
-      final status =
-          await AppTrackingTransparency.trackingAuthorizationStatus;
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
       if (status == TrackingStatus.notDetermined) {
         await AppTrackingTransparency.requestTrackingAuthorization();
       }
@@ -89,7 +88,9 @@ class ConsentService {
     try {
       ConsentForm.loadConsentForm(
         (form) => form.show((error) {
-          if (error != null) debugPrint('Consent form dismissed: ${_describe(error)}');
+          if (error != null) {
+            debugPrint('Consent form dismissed: ${_describe(error)}');
+          }
           finish();
         }),
         (error) {
