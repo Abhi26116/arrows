@@ -1,0 +1,6 @@
+# Copy to android/key.properties and fill in — that file is git-ignored.
+# Never commit the real one, and never commit the .jks itself.
+storePassword=your-keystore-password
+keyPassword=your-key-password
+keyAlias=arrows
+storeFile=/Users/mac/arrows-release.jks

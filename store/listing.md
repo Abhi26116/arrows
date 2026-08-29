@@ -1,0 +1,95 @@
+# Store listing copy — Arrows
+
+Everything below is ready to paste. Character counts are checked against each
+store's limits.
+
+---
+
+## App name / title
+
+**Arrows: Line Puzzle** — 19 chars (App Store limit 30, Play limit 30)
+
+Alternatives if that name is taken:
+- `Arrows — Clear the Board` (24)
+- `Arrows Line Logic` (17)
+
+## Subtitle (App Store, 30 chars)
+
+**Clear every arrow in order** — 26
+
+## Short description (Play, 80 chars)
+
+**Tap arrows with a clear path out. One wrong move and the board fights back.** — 75
+
+## Keywords (App Store, 100 chars, comma-separated, no spaces)
+
+```
+puzzle,logic,brain,arrow,line,order,strategy,offline,relax,think,board,solve,minimal,daily
+```
+90 chars
+
+## Full description (Play limit 4000, App Store 4000)
+
+```
+Every arrow wants out. Only some of them can leave.
+
+Arrows is a puzzle about order. Tap an arrow and it slides off the board — but
+only if nothing stands in its way. Get the order wrong and it slams into
+whatever is blocking it, and you lose a heart.
+
+The catch: an arrow blocks along its whole body, not just its head. A long
+arrow lying across the board is a wall. Read the whole line before you commit.
+
+WHAT YOU GET
+• 80 hand-tuned boards, from a gentle 3x3 opener to dense 18x18 tangles
+• Four difficulties — Easy, Medium, Hard, Expert
+• A fresh daily challenge, with a streak to keep alive
+• Six colour themes for the board
+• Three hearts per board — the ones you have left become your stars
+• Undo, hints and an optional cell grid when a board gets tight
+
+BUILT TO PLAY ANYWHERE
+No account. No sign-up. No internet needed. Your progress stays on your phone.
+Pick it up for one board on a train, or lose an hour to the Expert pack.
+
+SIMPLE TO LEARN, HARD TO FINISH
+The rule takes ten seconds to understand and the last boards will still take
+you a while. There is no timer and no pressure — just you, the board, and the
+order you choose.
+```
+
+## What's New (first release)
+
+```
+First release. 80 boards, daily challenges, six themes, and no internet
+required.
+```
+
+## Category
+
+- App Store: Games → Puzzle (secondary: Board)
+- Play: Games → Puzzle
+
+## Content rating
+
+Everyone / 3+. No violence, no user-generated content, no chat, no gambling.
+Declare **contains ads** and **in-app purchases** on both stores.
+
+## Data safety (Play) / Privacy labels (App Store)
+
+Declare, matching `ios/Runner/PrivacyInfo.xcprivacy` and the privacy policy:
+
+| Item | Answer |
+| --- | --- |
+| Device or other IDs | Collected, for advertising, **used for tracking** |
+| Location | Approximate, derived from IP by the ad SDK |
+| Purchases | Handled by the store, not collected by the app |
+| Data encrypted in transit | Yes |
+| Users can request deletion | Uninstalling removes everything; nothing is held on our servers |
+
+Everything else: not collected. There are no accounts and no backend.
+
+## Required URLs
+
+- Privacy policy — host `store/privacy-policy.md` (GitHub Pages works and is free)
+- Support URL — a page or email that answers player mail

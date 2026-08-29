@@ -1,0 +1,46 @@
+name: arrows_game
+description: Arrows puzzle game for Android and iOS.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.3.3
+  flutter_animate: ^4.5.0
+  audioplayers: ^6.1.0
+  # Firebase temporarily removed — its iOS SDK doesn't build on Xcode 15.2 and the
+  # app runs fully offline (leaderboard is local). Re-add when Xcode is upgraded;
+  # see EXTRAS.md. Pin: firebase_core 3.3.0 / firebase_auth 5.1.4 / cloud_firestore 5.2.1.
+  google_mobile_ads: 4.0.0
+  in_app_purchase: ^3.2.0
+  app_tracking_transparency: ^2.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/app_icon.png
+  adaptive_icon_background: "#0A242C"
+  adaptive_icon_foreground: assets/icon/app_icon.png
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sounds/
+    - assets/icon/
+  # Bundled offline (variable fonts) — previously fetched at runtime via google_fonts,
+  # which threw and fell back to system fonts when offline. See EXTRAS.md.
+  fonts:
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans.ttf

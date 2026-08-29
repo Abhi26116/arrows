@@ -1,0 +1,56 @@
+# Codemagic CI/CD — https://docs.codemagic.io/yaml/yaml-getting-started/
+#
+# This Mac runs Xcode 15.2 and cannot build for the App Store any more, so the
+# iOS store build happens here. Android is built locally with
+# `tool/build_release.sh`, which this workflow deliberately does not duplicate.
+#
+# Before the first run, add an App Store Connect integration in the Codemagic
+# UI — an API key with App Manager access — named `arrows_asc_key`.
+definitions:
+  scripts:
+    - &flutter_packages
+      name: Get Flutter packages
+      script: flutter pub get
+    - &analyze_and_test
+      name: Analyze and test
+      script: |
+        flutter analyze
+        flutter test
+
+workflows:
+  ios-release:
+    name: iOS release (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: arrows_asc_key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.arrowsgame.arrowsGame
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - *flutter_packages
+      - *analyze_and_test
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Install pods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --dart-define=LIVE_ADS=true \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
