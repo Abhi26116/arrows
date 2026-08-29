@@ -22,63 +22,82 @@ class HowToPlayScreen extends StatelessWidget {
                 title: 'How to Play',
                 showBack: !fromOnboarding,
               ),
+              // The steps and the button are one block, centred in whatever
+              // room is left. On a phone the block is taller than the screen,
+              // so the list scrolls and the button sits at the bottom exactly
+              // as before; on a tablet the block is shorter, and the button
+              // follows the last step instead of stranding itself an inch
+              // above the bottom edge.
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                  children: [
-                    _Step(
-                      number: '1',
-                      title: 'Tap an arrow',
-                      body:
-                          'It flies in the direction it points — up, down, left, or right.',
-                      trailing: ArrowGlyph(
-                        direction: Direction.right,
-                        color: AppColors.arrowLine,
-                        size: 36,
-                        glow: true,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView(
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                          children: [
+                            _Step(
+                              number: '1',
+                              title: 'Tap an arrow',
+                              body:
+                                  'It flies in the direction it points — up, down, left, or right.',
+                              trailing: ArrowGlyph(
+                                direction: Direction.right,
+                                color: AppColors.arrowLine,
+                                size: 36,
+                                glow: true,
+                              ),
+                            ),
+                            const _Step(
+                              number: '2',
+                              title: 'Clear path = gone',
+                              body:
+                                  'If nothing sits on its path to the edge, the whole '
+                                  'arrow slides off — however long it is.',
+                            ),
+                            const _Step(
+                              number: '3',
+                              title: 'Long arrows block more',
+                              body:
+                                  'An arrow blocks every cell along its body, not just '
+                                  'its head. Read the whole line before you tap.',
+                            ),
+                            const _Step(
+                              number: '4',
+                              title: 'Three hearts',
+                              body:
+                                  'A blocked tap costs a heart. Lose all three and the '
+                                  'board resets — hearts left become your stars.',
+                            ),
+                            const _Step(
+                              number: '5',
+                              title: 'Clear them all',
+                              body:
+                                  'Empty the board to win. Tap the grid button to show '
+                                  'cell lines, or Hint when you are stuck.',
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const _Step(
-                      number: '2',
-                      title: 'Clear path = gone',
-                      body:
-                          'If nothing sits on its path to the edge, the whole '
-                          'arrow slides off — however long it is.',
-                    ),
-                    const _Step(
-                      number: '3',
-                      title: 'Long arrows block more',
-                      body:
-                          'An arrow blocks every cell along its body, not just '
-                          'its head. Read the whole line before you tap.',
-                    ),
-                    const _Step(
-                      number: '4',
-                      title: 'Three hearts',
-                      body:
-                          'A blocked tap costs a heart. Lose all three and the '
-                          'board resets — hearts left become your stars.',
-                    ),
-                    const _Step(
-                      number: '5',
-                      title: 'Clear them all',
-                      body:
-                          'Empty the board to win. Tap the grid button to show '
-                          'cell lines, or Hint when you are stuck.',
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await AppStore.instance.setSeenHowTo(true);
-                      if (context.mounted) Navigator.pop(context, true);
-                    },
-                    child: Text(fromOnboarding ? 'Got it — Play' : 'Done'),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await AppStore.instance.setSeenHowTo(true);
+                              if (context.mounted) {
+                                Navigator.pop(context, true);
+                              }
+                            },
+                            child:
+                                Text(fromOnboarding ? 'Got it — Play' : 'Done'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
