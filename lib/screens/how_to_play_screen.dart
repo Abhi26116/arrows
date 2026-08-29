@@ -22,14 +22,16 @@ class HowToPlayScreen extends StatelessWidget {
                 title: 'How to Play',
                 showBack: !fromOnboarding,
               ),
-              // The steps and the button are one block, centred in whatever
-              // room is left. On a phone the block is taller than the screen,
-              // so the list scrolls and the button sits at the bottom exactly
-              // as before; on a tablet the block is shorter, and the button
-              // follows the last step instead of stranding itself an inch
-              // above the bottom edge.
+              // The steps and the button are one block, held to the top. On a
+              // phone the block is taller than the screen, so the list scrolls
+              // and the button sits at the bottom exactly as before; on a
+              // tablet the block is shorter, and the button follows the last
+              // step rather than stranding itself at the bottom edge. Any
+              // room left over falls below the button, so the steps start
+              // directly under the header on every device.
               Expanded(
-                child: Center(
+                child: Align(
+                  alignment: Alignment.topCenter,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
