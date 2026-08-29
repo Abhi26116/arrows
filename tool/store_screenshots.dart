@@ -7,13 +7,16 @@
 // SCREENSHOT_MODE keeps kDebugMode-only developer notes out of the images —
 // goldens always run in debug, so without it they render into the shots.
 //
-// Output lands in store/screenshots/{ios,android}/.
+// Output lands in store/screenshots/{ios,ipad,android}/. 01-06 are the listing
+// shots; iap_review_shop is the separate one both stores ask for when they
+// review the in-app purchases.
 import 'dart:io';
 
 import 'package:arrows_game/data/progress_store.dart';
 import 'package:arrows_game/logic/level_generator.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/screens/home_screen.dart';
+import 'package:arrows_game/screens/how_to_play_screen.dart';
 import 'package:arrows_game/screens/level_select_screen.dart';
 import 'package:arrows_game/screens/shop_screen.dart';
 import 'package:arrows_game/services/iap_service.dart';
@@ -28,7 +31,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _materialFonts =
     '/Users/mac/development/flutter/bin/cache/artifacts/material_fonts';
 
-/// iPhone 6.7" (1290x2796) and a common Android phone (1080x2400).
 /// iPhone 6.7" (1290x2796), iPad Pro 12.9" (2048x2732 — the size the App Store
 /// asks for when an app supports iPad) and a common Android phone.
 const _devices = <String, (Size, double)>{
@@ -105,10 +107,13 @@ void main() {
       testWidgets('05 themes', (t) async {
         await shot(t, const ThemesScreen(), '05_themes');
       });
+      testWidgets('06 how to play', (t) async {
+        await shot(t, const HowToPlayScreen(), '06_how_to_play');
+      });
       // Not a store listing shot — this is the one Apple and Google ask for
       // when reviewing the in-app purchases, so both products have to be
       // showing as still buyable rather than owned.
-      testWidgets('06 shop', (t) async {
+      testWidgets('iap review shop', (t) async {
         // With ads back on, the screen builds an AdBanner and the ads SDK is
         // not present under `flutter test`; swallow its channel calls so the
         // banner just renders empty.
@@ -155,7 +160,7 @@ void main() {
           ),
         ];
         addTearDown(() => IapService.instance.products = []);
-        await shot(t, const ShopScreen(), '06_shop');
+        await shot(t, const ShopScreen(), 'iap_review_shop');
       });
     });
   }
