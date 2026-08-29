@@ -43,25 +43,25 @@ workflows:
           flutter config --no-enable-swift-package-manager
       - *flutter_packages
       - *analyze_and_test
-      - name: Apply Flutter's Xcode project migrations
+      # Signing is deliberately kept away from Flutter. `flutter build ipa`
+      # insists on resolving a signing identity itself: with DEVELOPMENT_TEAM
+      # in the project it archives with automatic signing and hunts for an iOS
+      # App Development profile, and without it it goes looking for a
+      # development certificate in the keychain. Neither is what an App Store
+      # build needs, and this repo carries development signing so the app can
+      # run on the dev Mac's iPhone. So build unsigned here, then let Xcode
+      # archive and export with the profile fetched below.
+      - name: Build the app unsigned
         script: |
-          # `flutter build ipa` rewrites project.pbxproj on first run (raises
-          # the deployment target, migrates to the UIScene lifecycle). Left to
-          # the build step that happens *after* signing is configured, so get
-          # it out of the way first.
-          flutter build ios --config-only --release
+          flutter build ios --release --no-codesign \
+            --dart-define=LIVE_ADS=true \
+            --build-number=$PROJECT_BUILD_NUMBER
       - name: Set up code signing
         script: |
-          # The project hard-codes a development identity and team so the app
-          # can be run on the dev Mac's own iPhone. On CI that makes Flutter
-          # archive with automatic signing and look for an *iOS App Development*
-          # profile, which is not what an App Store build needs. Drop both here
-          # — use-profiles writes the correct manual App Store values back, and
-          # the checkout is thrown away afterwards, so local signing is
-          # untouched.
-          sed -i '' -E \
-            '/^[[:space:]]*("CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]"|DEVELOPMENT_TEAM|CODE_SIGN_STYLE) = /d' \
-            ios/Runner.xcodeproj/project.pbxproj
+          # Runs after the build so Flutter's project migrations (deployment
+          # target, UIScene lifecycle) cannot rewrite project.pbxproj over the
+          # signing settings use-profiles writes into it.
+          #
           # Nothing has ever built this bundle id for the App Store, so there is
           # no profile to fetch — --create makes one, and issues the
           # distribution certificate if the account has none.
@@ -71,15 +71,14 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles
-      - name: Install pods
+      - name: Archive and export the IPA
         script: |
-          find . -name "Podfile" -execdir pod install \;
-      - name: Build IPA
-        script: |
-          flutter build ipa --release \
-            --dart-define=LIVE_ADS=true \
-            --build-number=$PROJECT_BUILD_NUMBER \
-            --export-options-plist=/Users/builder/export_options.plist
+          # Codemagic's own tool, not Flutter's: it archives and exports with
+          # the manual App Store profile installed above and adds no signing
+          # logic of its own. Pods are already installed by the unsigned build.
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
