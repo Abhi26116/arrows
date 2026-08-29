@@ -14,6 +14,7 @@ import 'dart:io';
 
 import 'package:arrows_game/data/progress_store.dart';
 import 'package:arrows_game/logic/level_generator.dart';
+import 'package:arrows_game/main.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/screens/home_screen.dart';
 import 'package:arrows_game/screens/how_to_play_screen.dart';
@@ -79,6 +80,9 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         theme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
+        // The same wrapper the real app installs, so the tablet shots show the
+        // enlarged interface an iPad actually gets rather than a phone one.
+        builder: (context, child) => TabletScale(child: child!),
         home: page,
       ));
       // Let the entry animations settle.

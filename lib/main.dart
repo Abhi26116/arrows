@@ -48,6 +48,68 @@ Future<void> main() async {
   runApp(const ArrowsApp());
 }
 
+/// Lays the app out at phone proportions and then enlarges the whole thing on
+/// a tablet.
+///
+/// Capping the content width was only half the job: it stopped the layouts
+/// stretching, but left an iPad showing phone-sized type inside a narrow
+/// column. Scaling text alone would not have helped either — the padding,
+/// icons, badges and corner radii around it would still be phone-sized, and
+/// the cards would look starved.
+///
+/// Laying out against a smaller logical screen and scaling the result grows
+/// every one of those together, in one place, without a size constant in
+/// thirty files needing a tablet variant.
+class TabletScale extends StatelessWidget {
+  const TabletScale({super.key, required this.child});
+
+  final Widget child;
+
+  /// 1.0 on phones. On a tablet it grows with the shorter edge, capped so a
+  /// 12.9" iPad gets a comfortably larger interface rather than a magnified
+  /// one.
+  static double scaleFor(Size size) {
+    final shortest = size.shortestSide;
+    if (shortest < 600) return 1;
+    return (shortest / 620).clamp(1.0, 1.4);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final scale = scaleFor(media.size);
+    if (scale == 1) return child;
+
+    // The insets have to shrink with the screen: they are measured in real
+    // pixels, and everything below is about to be multiplied back up.
+    final size = media.size / scale;
+    return MediaQuery(
+      data: media.copyWith(
+        size: size,
+        padding: media.padding / scale,
+        viewPadding: media.viewPadding / scale,
+        viewInsets: media.viewInsets / scale,
+      ),
+      // The Transform takes the size of its (smaller) child, so without the
+      // Align it is centred in the screen first and then scaled out of it from
+      // the corner. Pin it to the top left and the scaled result lands exactly
+      // on the screen.
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Transform.scale(
+          scale: scale,
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ArrowsApp extends StatelessWidget {
   const ArrowsApp({super.key});
 
@@ -60,6 +122,7 @@ class ArrowsApp extends StatelessWidget {
           title: 'Arrows',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark,
+          builder: (context, child) => TabletScale(child: child!),
           home: const SplashScreen(),
         );
       },

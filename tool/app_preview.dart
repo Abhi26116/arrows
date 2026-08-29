@@ -15,6 +15,7 @@ import 'dart:ui' as ui;
 import 'package:arrows_game/data/progress_store.dart';
 import 'package:arrows_game/logic/game_controller.dart';
 import 'package:arrows_game/logic/level_generator.dart';
+import 'package:arrows_game/main.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:arrows_game/widgets/game_board.dart';
@@ -104,6 +105,9 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.dark,
           debugShowCheckedModeBanner: false,
+          // The wrapper the real app installs — without it the iPad recording
+          // would show a phone-sized interface at iPad dimensions.
+          builder: (context, child) => TabletScale(child: child!),
           home: GameScreen(customLevel: LevelCatalog.byId(56)),
         ),
       ),
