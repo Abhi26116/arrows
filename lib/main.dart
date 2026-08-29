@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'audio/sfx.dart';
 import 'data/progress_store.dart';
 import 'firebase/firebase_bootstrap.dart';
@@ -116,12 +118,22 @@ class ArrowsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: ThemeController.instance,
+      // The store carries the language choice as well as progress, so both it
+      // and the theme have to be able to rebuild the app.
+      listenable: Listenable.merge([
+        ThemeController.instance,
+        AppStore.instance,
+      ]),
       builder: (context, _) {
+        final code = AppStore.instance.localeCode;
         return MaterialApp(
           title: 'Arrows',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          // null means follow the phone, which is what Flutter does by default.
+          locale: code == null ? null : Locale(code),
           builder: (context, child) => TabletScale(child: child!),
           home: const SplashScreen(),
         );

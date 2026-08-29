@@ -38,6 +38,7 @@ class AppStore extends ChangeNotifier {
   static const _keyWinStreakAds = 'wins_since_interstitial';
   static const _keyBonusHints = 'bonus_hints';
   static const _keyShowGrid = 'settings_show_grid';
+  static const _keyLocale = 'settings_locale';
 
   SharedPreferences? _prefs;
 
@@ -121,6 +122,25 @@ class AppStore extends ChangeNotifier {
   }
 
   bool get showGrid => _prefs?.getBool(_keyShowGrid) ?? false;
+
+  /// Language override, or null to follow the phone. Stored as a bare
+  /// language code — the app has one translation per language, not per region.
+  String? get localeCode {
+    final v = _prefs?.getString(_keyLocale);
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  /// Whether the player has been asked to pick a language yet. Separate from
+  /// [localeCode] because "follow the phone" is a real answer, and asking again
+  /// every launch because they chose it would be rude.
+  bool get chosenLanguage => _prefs?.getBool('settings_chose_language') ?? false;
+
+  Future<void> setLocaleCode(String? code) async {
+    await init();
+    await _prefs!.setString(_keyLocale, code ?? '');
+    await _prefs!.setBool('settings_chose_language', true);
+    notifyListeners();
+  }
 
   Future<void> setShowGrid(bool value) async {
     await init();

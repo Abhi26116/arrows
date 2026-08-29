@@ -9,7 +9,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   cupertino_icons: ^1.0.8
+  # All chosen for having no iOS SDK requirement beyond what Xcode 15.2 can
+  # build — the same constraint that keeps Firebase out (see EXTRAS.md).
+  in_app_review: ^2.0.9
+  package_info_plus: ^8.0.2
+  url_launcher: ^6.3.0
+  http: ^1.2.2
+  # Android only; it is Play's own update flow and contributes nothing to the
+  # iOS build.
+  in_app_update: ^4.2.3
   shared_preferences: ^2.3.3
   flutter_animate: ^4.5.0
   audioplayers: ^6.1.0
@@ -35,6 +47,7 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/sounds/
     - assets/icon/
