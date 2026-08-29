@@ -38,6 +38,9 @@ const _devices = <String, (Size, double)>{
   'ios': (Size(1290, 2796), 3),
   'ipad': (Size(2048, 2732), 2),
   'android': (Size(1080, 2400), 3),
+  // Play asks for tablet shots separately, and without them the listing is
+  // marked down for large screens however well the app behaves on one.
+  'android_tablet': (Size(1600, 2560), 2),
 };
 
 Future<void> _loadFont(String family, String path) async {

@@ -397,6 +397,44 @@ class _GameScreenState extends State<GameScreen> {
 
   /// Restarting throws away a board in progress, so ask first once the player
   /// has actually made moves.
+  /// Asked before a board in progress is abandoned. Returns whether to leave.
+  Future<bool> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          'Leave this board?',
+          style: TextStyle(
+            fontFamily: 'DMSans',
+            fontVariations: const [FontVariation('wght', 700)],
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+        content: Text(
+          'It starts from the beginning next time.',
+          style: TextStyle(color: AppColors.muted),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text('Keep playing', style: TextStyle(color: AppColors.muted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Leave', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    return leave ?? false;
+  }
+
   Future<void> _confirmRestart() async {
     SoundService.instance.hapticSelection();
     if (_session.moves == 0 && _session.mistakes == 0) {
@@ -454,162 +492,174 @@ class _GameScreenState extends State<GameScreen> {
     final title = widget.isDaily ? 'Daily' : level.difficulty;
     final subtitle = widget.isDaily ? 'TODAY' : 'LEVEL ${level.id}';
 
-    return Scaffold(
-      body: BoardBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Both side clusters are the same width, so the title
-                    // column centres on the screen and not between them.
-                    SizedBox(
-                      width: _sideCluster,
-                      child: Row(
-                        children: [
-                          CircleIconButton(
-                            icon: Icons.play_arrow_rounded,
-                            flipped: true,
-                            tooltip: 'Back',
-                            onTap: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(width: 10),
-                          CircleIconButton(
-                            icon: Icons.undo_rounded,
-                            tooltip: 'Undo',
-                            onTap: _busy || !_session.canUndo
-                                ? null
-                                : () {
-                                    if (_session.undo()) {
-                                      SoundService.instance.hapticSelection();
-                                      setState(() {
-                                        _hintId = null;
-                                        _won = false;
-                                      });
-                                    }
-                                  },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: AppColors.muted,
-                              fontSize: 10,
-                              letterSpacing: 1.6,
-                              fontWeight: FontWeight.w600,
+    return PopScope(
+      // A board in progress lives only in memory, so leaving throws away
+      // however far in the player was. Restarting already asks; Android's back
+      // gesture is far easier to hit by accident than either button, so it has
+      // to ask too. An untouched board leaves without comment.
+      canPop: _won || (_session.moves == 0 && _session.mistakes == 0),
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final navigator = Navigator.of(context);
+        if (await _confirmLeave()) navigator.pop();
+      },
+      child: Scaffold(
+        body: BoardBackground(
+          child: SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Both side clusters are the same width, so the title
+                      // column centres on the screen and not between them.
+                      SizedBox(
+                        width: _sideCluster,
+                        child: Row(
+                          children: [
+                            CircleIconButton(
+                              icon: Icons.play_arrow_rounded,
+                              flipped: true,
+                              tooltip: 'Back',
+                              onTap: () => Navigator.pop(context),
                             ),
-                          ),
-                          // Difficulty words vary in width and the bold face
-                          // is wide — scale down instead of wrapping.
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              title,
-                              maxLines: 1,
-                              softWrap: false,
-                              style: TextStyle(
-                                fontFamily: 'DMSans',
-                                fontVariations: const [
-                                  FontVariation('wght', 700)
-                                ],
-                                fontWeight: FontWeight.w700,
-                                fontSize: 22,
-                                color: AppColors.accent,
-                              ),
+                            const SizedBox(width: 10),
+                            CircleIconButton(
+                              icon: Icons.undo_rounded,
+                              tooltip: 'Undo',
+                              onTap: _busy || !_session.canUndo
+                                  ? null
+                                  : () {
+                                      if (_session.undo()) {
+                                        SoundService.instance.hapticSelection();
+                                        setState(() {
+                                          _hintId = null;
+                                          _won = false;
+                                        });
+                                      }
+                                    },
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          _Hearts(lives: _session.lives),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: _sideCluster,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: CircleIconButton(
-                          icon: Icons.cleaning_services_rounded,
-                          tooltip: 'Restart board',
-                          onTap: _busy ? null : _confirmRestart,
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Row(
-                  children: [
-                    Expanded(child: _ProgressBar(value: _session.progress)),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${_session.cleared}/${_session.totalArrows}',
-                      style: TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 10,
+                                letterSpacing: 1.6,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            // Difficulty words vary in width and the bold face
+                            // is wide — scale down instead of wrapping.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(
+                                  fontFamily: 'DMSans',
+                                  fontVariations: const [
+                                    FontVariation('wght', 700)
+                                  ],
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22,
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _Hearts(lives: _session.lives),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    // Extra bottom padding lifts the board clear of the
-                    // floating buttons and balances the header above it.
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 92),
-                      child: GameBoard(
-                        session: _session,
-                        onTap: _onTap,
-                        showGrid: _showGrid,
-                        hintId: _hintId,
-                        animatingId: _animatingId,
-                        animArrow: _animArrow,
-                        animPath: _animPath,
-                        blockedId: _blockedId,
-                        blockedNonce: _blockedNonce,
-                        onAnimComplete: _onAnimComplete,
-                      ),
-                    ),
-                    Positioned(
-                      right: 16,
-                      bottom: 16,
-                      child: Column(
-                        children: [
-                          CircleIconButton(
-                            icon: Icons.lightbulb_outline_rounded,
-                            accent: true,
-                            tooltip: 'Hint',
-                            onTap: _busy ? null : _hint,
+                      SizedBox(
+                        width: _sideCluster,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: CircleIconButton(
+                            icon: Icons.cleaning_services_rounded,
+                            tooltip: 'Restart board',
+                            onTap: _busy ? null : _confirmRestart,
                           ),
-                          const SizedBox(height: 12),
-                          CircleIconButton(
-                            icon: Icons.grid_on_rounded,
-                            active: _showGrid,
-                            tooltip: _showGrid ? 'Hide grid' : 'Show grid',
-                            onTap: _toggleGrid,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Row(
+                    children: [
+                      Expanded(child: _ProgressBar(value: _session.progress)),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${_session.cleared}/${_session.totalArrows}',
+                        style: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Extra bottom padding lifts the board clear of the
+                      // floating buttons and balances the header above it.
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 4, 14, 92),
+                        child: GameBoard(
+                          session: _session,
+                          onTap: _onTap,
+                          showGrid: _showGrid,
+                          hintId: _hintId,
+                          animatingId: _animatingId,
+                          animArrow: _animArrow,
+                          animPath: _animPath,
+                          blockedId: _blockedId,
+                          blockedNonce: _blockedNonce,
+                          onAnimComplete: _onAnimComplete,
+                        ),
+                      ),
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: Column(
+                          children: [
+                            CircleIconButton(
+                              icon: Icons.lightbulb_outline_rounded,
+                              accent: true,
+                              tooltip: 'Hint',
+                              onTap: _busy ? null : _hint,
+                            ),
+                            const SizedBox(height: 12),
+                            CircleIconButton(
+                              icon: Icons.grid_on_rounded,
+                              active: _showGrid,
+                              tooltip: _showGrid ? 'Hide grid' : 'Show grid',
+                              onTap: _toggleGrid,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
