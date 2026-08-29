@@ -4,8 +4,11 @@
 # iOS store build happens here. Android is built locally with
 # `tool/build_release.sh`, which this workflow deliberately does not duplicate.
 #
-# Before the first run, add an App Store Connect integration in the Codemagic
-# UI — an API key with App Manager access — named `arrows_asc_key`.
+# Signing uses the Apple Developer Portal key registered in the Codemagic UI
+# under Settings > Integrations > Developer Portal. `codemagic-admin` is the
+# name that key carries there — it is account-wide, so it is shared with the
+# other apps in this Codemagic account. Renaming it there breaks them; change
+# the name below instead.
 definitions:
   scripts:
     - &flutter_packages
@@ -23,7 +26,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      app_store_connect: arrows_asc_key
+      app_store_connect: codemagic-admin
     environment:
       ios_signing:
         distribution_type: app_store

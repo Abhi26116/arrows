@@ -121,9 +121,15 @@ Store Connect and Play Console. Until they exist StoreKit answers
 
 ### 4. Codemagic setup (iOS only)
 
-One thing: an App Store Connect API key integration named `arrows_asc_key`,
-with the App Manager role. The app record must already exist in App Store
-Connect. Android needs nothing here — it ships from this Mac.
+Signing needs an Apple Developer Portal key under Settings > Integrations >
+Developer Portal, with the App Manager or Admin role. The key in use is named
+`codemagic-admin` (Key ID 2CNWYY478P) and `codemagic.yaml` names it directly.
+That key is account-wide and shared with the other apps in this Codemagic
+account, so rename it there and their builds break — change the name in
+`codemagic.yaml` instead.
+
+The app record must already exist in App Store Connect. Android needs nothing
+here — it ships from this Mac.
 
 ### 5. Store paperwork
 
