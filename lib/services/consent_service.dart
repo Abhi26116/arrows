@@ -5,6 +5,8 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../config/app_config.dart';
+
 /// Google's User Messaging Platform flow.
 ///
 /// AdMob will not serve ads to users in the EEA or UK without a certified
@@ -14,7 +16,9 @@ class ConsentService {
   ConsentService._();
   static final ConsentService instance = ConsentService._();
 
-  bool _gathered = false;
+  /// The launch-time flow, kept so later callers can wait on it instead of
+  /// racing it. Null until [gather] first runs.
+  Future<void>? _gathering;
 
   /// Widget tests have no ads SDK to answer these calls, so the flow would sit
   /// on its timeout timer and fail the test with a pending timer.
@@ -26,9 +30,12 @@ class ConsentService {
   ///
   /// Order matters: Google's consent message is meant to be shown before the
   /// system tracking prompt, and both before the ads SDK starts.
-  Future<void> gather() async {
-    if (_inTest || _gathered) return;
-    _gathered = true;
+  Future<void> gather() {
+    if (_inTest) return Future<void>.value();
+    return _gathering ??= _gather();
+  }
+
+  Future<void> _gather() async {
     try {
       await _requestUpdate();
       final status = await ConsentInformation.instance.getConsentStatus();
@@ -62,6 +69,9 @@ class ConsentService {
   /// regulators expect to be reachable after the first prompt.
   Future<bool> get formAvailable async {
     if (_inTest) return false;
+    // Settings can be opened before the launch flow has answered; asking the
+    // SDK first would get a premature false and hide the row for the session.
+    await _gathering;
     try {
       return await ConsentInformation.instance.isConsentFormAvailable();
     } catch (_) {
@@ -102,6 +112,30 @@ class ConsentService {
   static String _describe(FormError error) =>
       'code ${error.errorCode} — ${error.message}';
 
+  /// Normally empty parameters. With `--dart-define=CONSENT_TEST_EEA=true` the
+  /// listed devices are told they are in the EEA, so the form appears from
+  /// anywhere — the only way to exercise this flow outside Europe.
+  ConsentRequestParameters _params() {
+    if (!AppConfig.consentTestEea) return ConsentRequestParameters();
+    return ConsentRequestParameters(
+      consentDebugSettings: ConsentDebugSettings(
+        debugGeography: DebugGeography.debugGeographyEea,
+        testIdentifiers: AppConfig.consentTestDeviceIds,
+      ),
+    );
+  }
+
+  /// Forgets the cached answer so the next [gather] shows the form again.
+  /// Testing only — the consent choice is meant to persist for real users.
+  Future<void> resetForTesting() async {
+    try {
+      await ConsentInformation.instance.reset();
+      _gathering = null;
+    } catch (e) {
+      debugPrint('Consent reset failed: $e');
+    }
+  }
+
   Future<void> _requestUpdate() async {
     final completer = Completer<void>();
     void finish() {
@@ -109,7 +143,7 @@ class ConsentService {
     }
 
     ConsentInformation.instance.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
+      _params(),
       finish,
       (error) {
         debugPrint('Consent info update failed: ${_describe(error)}');

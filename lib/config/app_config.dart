@@ -41,6 +41,25 @@ class AppConfig {
   /// device, set: … testDeviceIdentifiers = [ "<id>" ]".
   static const List<String> testDeviceIds = <String>[];
 
+  // —— Consent testing ——
+  //
+  // The consent form is only offered to users Google places in the EEA or UK,
+  // so from anywhere else `isConsentFormAvailable()` returns false, no form is
+  // shown, and "Privacy options" stays hidden in Settings. These two knobs let
+  // a test device pretend it is in Europe.
+
+  /// Makes UMP treat this device as an EEA user. Opt-in via
+  /// `--dart-define=CONSENT_TEST_EEA=true` — never passed by the store builds.
+  ///
+  /// Only takes effect on a device listed in [consentTestDeviceIds]; UMP
+  /// ignores the override everywhere else.
+  static const bool consentTestEea = bool.fromEnvironment('CONSENT_TEST_EEA');
+
+  /// UMP test devices. **Not** the same ids as [testDeviceIds] — take this one
+  /// from the log line "Use ConsentDebugSettings.Builder()
+  /// .addTestDeviceHashedId("<id>")" printed on the first run.
+  static const List<String> consentTestDeviceIds = <String>[];
+
   // Create these non-consumable products in Play Console / App Store Connect.
   static const iapRemoveAds = 'arrows_remove_ads';
   static const iapThemePack = 'arrows_theme_pack';
