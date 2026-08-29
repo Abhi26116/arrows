@@ -32,6 +32,15 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Disable Swift Package Manager
+        script: |
+          # google_mobile_ads 4.0.0 is CocoaPods-only, but the
+          # webview_flutter_wkwebview it pulls in has adopted SPM, and recent
+          # Flutter turns SPM on by default — `pod install` then refuses the
+          # mix. The ads plugin is pinned to 4.x so the dev Mac's Xcode 15.2 can
+          # still build (see EXTRAS.md), so turn SPM off rather than move the
+          # pin. Revisit when that pin is lifted.
+          flutter config --no-enable-swift-package-manager
       - *flutter_packages
       - *analyze_and_test
       - name: Set up code signing
