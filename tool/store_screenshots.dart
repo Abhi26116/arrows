@@ -29,8 +29,11 @@ const _materialFonts =
     '/Users/mac/development/flutter/bin/cache/artifacts/material_fonts';
 
 /// iPhone 6.7" (1290x2796) and a common Android phone (1080x2400).
+/// iPhone 6.7" (1290x2796), iPad Pro 12.9" (2048x2732 — the size the App Store
+/// asks for when an app supports iPad) and a common Android phone.
 const _devices = <String, (Size, double)>{
   'ios': (Size(1290, 2796), 3),
+  'ipad': (Size(2048, 2732), 2),
   'android': (Size(1080, 2400), 3),
 };
 

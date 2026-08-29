@@ -147,6 +147,40 @@ class AppHeader extends StatelessWidget {
   }
 }
 
+/// Caps how wide a screen's content may grow and centres what is left.
+///
+/// Every layout here was drawn for a phone. Left alone on an iPad they stretch
+/// to the full 1024pt or more: buttons run the whole width of the screen, text
+/// lines get uncomfortably long, and the header controls end up in opposite
+/// corners. Phones are narrower than [maxWidth], so nothing about them changes.
+///
+/// [wide] is for the board, which is square and reads better with more room
+/// than a column of text or buttons would.
+class ContentBounds extends StatelessWidget {
+  const ContentBounds({super.key, required this.child, this.wide = false});
+
+  final Widget child;
+  final bool wide;
+
+  /// Roughly a large phone. Wide enough that nothing feels cramped, narrow
+  /// enough that a row of buttons still reads as a group.
+  static const double narrowMax = 560;
+
+  /// The board can take more, but not so much that a cell becomes a tile the
+  /// size of a fist.
+  static const double wideMax = 760;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: wide ? wideMax : narrowMax),
+        child: child,
+      ),
+    );
+  }
+}
+
 /// Section label used between groups of cards.
 class SectionLabel extends StatelessWidget {
   const SectionLabel(this.text, {super.key});

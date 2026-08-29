@@ -11,10 +11,18 @@ import 'theme/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Phones stay upright — the layouts are columns and there is nothing to gain
+  // from landscape on a 6" screen. A tablet is held whichever way its case
+  // stands, so refusing to rotate there just reads as a phone app that was
+  // dropped onto an iPad.
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  final logicalSize = view.physicalSize / view.devicePixelRatio;
+  final isTablet = logicalSize.shortestSide >= 600;
+  await SystemChrome.setPreferredOrientations(
+    isTablet
+        ? DeviceOrientation.values
+        : const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+  );
   await AppStore.instance.init();
   await ThemeController.instance.load();
   await SoundService.instance.init();

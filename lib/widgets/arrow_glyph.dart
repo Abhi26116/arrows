@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/direction.dart';
 import '../theme/app_theme.dart';
+import 'app_chrome.dart';
 
 /// Shared line-art arrow used by the board and by decorative glyphs.
 ///
@@ -139,7 +140,9 @@ class BoardBackground extends StatelessWidget {
           stops: const [0, 0.55, 1],
         ),
       ),
-      child: child,
+      // Wider than the menus allow: the board is square, so it earns the extra
+      // room in a way a column of buttons does not.
+      child: ContentBounds(wide: true, child: child),
     );
   }
 }
@@ -291,7 +294,10 @@ class AtmosphereBackground extends StatelessWidget {
               size: 260,
             ),
           ),
-          Positioned.fill(child: child),
+          // The gradient and blobs stay full-bleed; only what sits on top is
+          // held to a readable width, which is what keeps these phone layouts
+          // from stretching across an iPad.
+          Positioned.fill(child: ContentBounds(child: child)),
         ],
       ),
     );
