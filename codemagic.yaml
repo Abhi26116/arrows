@@ -28,9 +28,6 @@ workflows:
     integrations:
       app_store_connect: codemagic-admin
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.arrowsgame.arrowsGame
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -39,6 +36,16 @@ workflows:
       - *analyze_and_test
       - name: Set up code signing
         script: |
+          # `ios_signing:` in the environment only *looks for* a profile that
+          # already exists, and this Apple account has never produced one for
+          # this bundle id — hence "No matching profiles found". Ask for it to
+          # be created instead. --create also issues the distribution
+          # certificate when the account has none.
+          keychain initialize
+          app-store-connect fetch-signing-files "com.arrowsgame.arrowsGame" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
           xcode-project use-profiles
       - name: Install pods
         script: |
