@@ -262,7 +262,8 @@ void main() {
     final box = tester.getRect(find.byType(GameBoard));
     final side = math.min(box.width, box.height);
     final boardTop = box.center.dy - side / 2;
-    final counter = tester.getRect(find.text('0/44'));
+    final total = LevelCatalog.byId(72).arrows.length;
+    final counter = tester.getRect(find.text('0/$total'));
 
     expect(boardTop - counter.bottom, lessThan(48),
         reason: 'slack above the board should stay capped');

@@ -22,6 +22,7 @@ class GameController {
       : rows = level.rows,
         cols = level.cols,
         levelId = level.id,
+        captives = level.captives,
         _arrows = {for (final a in level.arrows) a.id: a.copy()} {
     for (final a in _arrows.values) {
       _occupy(a);
@@ -31,6 +32,7 @@ class GameController {
   final int rows;
   final int cols;
   final int levelId;
+  final List<Captive> captives;
   final Map<int, ArrowPiece> _arrows;
 
   /// Cell key -> arrow id, so blocking checks stay O(1) on dense boards.

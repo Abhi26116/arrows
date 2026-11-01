@@ -1,12 +1,65 @@
 import 'arrow.dart';
 import 'direction.dart';
 
+/// An animal penned in by the arrows around it. It owns a square block of
+/// cells that no arrow may use, so the board is woven around it; clearing the
+/// arrows that ring that block sets it loose.
+///
+/// Decoration and progress only — the level is still won by clearing every
+/// arrow, so a captive can never make a board unsolvable.
+class Captive {
+  const Captive({
+    required this.row,
+    required this.col,
+    required this.span,
+    required this.kind,
+  });
+
+  /// Top-left cell of the block.
+  final int row;
+  final int col;
+
+  /// Width and height of the block, in cells.
+  final int span;
+
+  /// Which animal to draw; the painter maps this to a glyph.
+  final CaptiveKind kind;
+
+  /// Every cell the animal sits on.
+  Iterable<(int, int)> get cells sync* {
+    for (var r = row; r < row + span; r++) {
+      for (var c = col; c < col + span; c++) {
+        yield (r, c);
+      }
+    }
+  }
+
+  /// Whether anything in [occupied] still stands on the fence. The animal is
+  /// loose the moment that ring is clear — it does not have to wait for the
+  /// whole board.
+  bool isPennedBy(Set<(int, int)> occupied) => fence.any(occupied.contains);
+
+  /// The ring of cells just outside the block. An arrow standing on any of
+  /// these is still penning the animal in.
+  Iterable<(int, int)> get fence sync* {
+    for (var r = row - 1; r <= row + span; r++) {
+      for (var c = col - 1; c <= col + span; c++) {
+        final inside = r >= row && r < row + span && c >= col && c < col + span;
+        if (!inside) yield (r, c);
+      }
+    }
+  }
+}
+
+enum CaptiveKind { paw, bunny }
+
 class LevelData {
   const LevelData({
     required this.id,
     required this.rows,
     required this.cols,
     required this.arrows,
+    this.captives = const [],
     this.label,
     this.difficulty = 'Easy',
   });
@@ -15,6 +68,10 @@ class LevelData {
   final int rows;
   final int cols;
   final List<ArrowPiece> arrows;
+
+  /// Animals penned in by the arrows. Usually empty on the early boards.
+  final List<Captive> captives;
+
   final String? label;
 
   /// Shown as the board title: Easy / Medium / Hard / Expert.
@@ -27,6 +84,7 @@ class LevelData {
         label: label,
         difficulty: difficulty,
         arrows: arrows.map((a) => a.copy()).toList(),
+        captives: captives,
       );
 }
 

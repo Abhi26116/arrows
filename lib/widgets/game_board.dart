@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/game_controller.dart';
 import '../models/arrow.dart';
+import '../models/level.dart';
 import '../theme/app_theme.dart';
 import 'arrow_glyph.dart';
 
@@ -151,6 +152,7 @@ class _GameBoardState extends State<GameBoard> with TickerProviderStateMixin {
                 cols: c.cols,
                 cell: cell,
                 arrows: c.arrows.values.toList(),
+                captives: c.captives,
                 showGrid: widget.showGrid,
                 lineColor: AppColors.arrowLine,
                 gridColor: AppColors.gridLine,
@@ -179,6 +181,7 @@ class _BoardPainter extends CustomPainter {
     required this.cols,
     required this.cell,
     required this.arrows,
+    required this.captives,
     required this.showGrid,
     required this.lineColor,
     required this.accentLineColor,
@@ -198,6 +201,7 @@ class _BoardPainter extends CustomPainter {
   final int cols;
   final double cell;
   final List<ArrowPiece> arrows;
+  final List<Captive> captives;
   final bool showGrid;
   final Color lineColor;
   final Color accentLineColor;
@@ -283,6 +287,8 @@ class _BoardPainter extends CustomPainter {
     strokeNeon(canvas, accent,
         color: accentLineColor, stroke: stroke, bloom: _bloom);
 
+    _paintCaptives(canvas);
+
     for (final arrow in solo) {
       final base = arrow.accent ? accentLineColor : lineColor;
       if (arrow.id == hintId) {
@@ -311,6 +317,40 @@ class _BoardPainter extends CustomPainter {
     }
 
     _paintFlight(canvas, stroke);
+  }
+
+  /// An animal is penned while any arrow still stands on the ring of cells
+  /// around it, and loose once that ring is clear. Freed animals take the
+  /// hint colour and ride the same pulse the hint does, so clearing the last
+  /// arrow beside one reads as having let it out.
+  void _paintCaptives(Canvas canvas) {
+    if (captives.isEmpty) return;
+    final taken = <(int, int)>{
+      for (final arrow in arrows) ...arrow.cells,
+    };
+
+    for (final captive in captives) {
+      final penned = captive.isPennedBy(taken);
+      final centre = Offset(
+        (captive.col + captive.span / 2) * cell,
+        (captive.row + captive.span / 2) * cell,
+      );
+      final icon = switch (captive.kind) {
+        CaptiveKind.paw => Icons.pets_rounded,
+        CaptiveKind.bunny => Icons.cruelty_free_rounded,
+      };
+      drawNeonGlyph(
+        canvas,
+        icon,
+        center: centre,
+        size: cell * captive.span * 0.78,
+        color: penned
+            ? lineColor
+            : Color.lerp(hintColor, Colors.white, 0.25 * pulse.value)!,
+        opacity: penned ? 0.45 : 1,
+        bloom: _bloom,
+      );
+    }
   }
 
   /// A cleared arrow slides out along its own track, tip first, so a bent

@@ -14,7 +14,6 @@ class LevelGenerator {
   final Random _rng;
 
   /// Stop after this many consecutive failed placements — the board is full.
-  static const int _stallLimit = 2500;
   static const int _maxAttempts = 60000;
 
   /// Shortest run after a turn: a single-cell jog reads as a glitch rather
@@ -30,55 +29,87 @@ class LevelGenerator {
     int maxLength = 1,
     double bendChance = 0,
     int maxBends = 2,
+    int captiveCount = 0,
     String difficulty = 'Easy',
     String? label,
   }) {
     final occupied = <(int, int)>{};
     final placed = <ArrowPiece>[];
-    final targetCells = (rows * cols * fill).round();
+
+    // Pen the animals first and mark their cells taken, so the arrows are
+    // woven around them and no exit path is ever planned through one.
+    final captives = _placeCaptives(rows, cols, captiveCount);
+    for (final captive in captives) {
+      occupied.addAll(captive.cells);
+    }
+    final reserved = occupied.length;
+
+    final targetCells = ((rows * cols - reserved) * fill).round();
     var attempts = 0;
-    var stall = 0;
 
     bool reachedTarget() => arrowCount != null
         ? placed.length >= arrowCount
-        : occupied.length >= targetCells;
+        : occupied.length - reserved >= targetCells;
 
-    while (!reachedTarget() && attempts < _maxAttempts && stall < _stallLimit) {
-      attempts++;
-      stall++;
-      final row = _rng.nextInt(rows);
-      final col = _rng.nextInt(cols);
-      if (occupied.contains((row, col))) continue;
+    // Sweep the empty cells in a shuffled order rather than sampling at
+    // random. Once a board is most of the way full a random pick nearly
+    // always lands on a taken cell, so sampling stalls out while whole
+    // regions have never been tried — which is what leaves a dense board
+    // with one big hole in it. A sweep tries every empty cell, so the only
+    // cells still empty at the end are the ones no arrow can legally use.
+    var sweeping = true;
+    while (sweeping && !reachedTarget() && attempts < _maxAttempts) {
+      sweeping = false;
+      final empties = <(int, int)>[
+        for (var r = 0; r < rows; r++)
+          for (var c = 0; c < cols; c++)
+            if (!occupied.contains((r, c))) (r, c),
+      ]..shuffle(_rng);
+      // Centre cells first. An arrow is placed in reverse-removal order, so
+      // it needs a corridor to the edge past everything already down: a cell
+      // by the rim needs almost none, one in the middle needs the longest.
+      // Claiming the middle while the board is still open spends that room
+      // where it is scarce, and leaves the easy rim cells for last — which
+      // is both denser overall and stops the hole opening up in the centre.
+      int rim((int, int) p) =>
+          min(min(p.$1, rows - 1 - p.$1), min(p.$2, cols - 1 - p.$2));
+      empties.sort((a, b) => rim(b).compareTo(rim(a)));
 
-      final dirs = List<Direction>.from(Direction.values)..shuffle(_rng);
-      for (final dir in dirs) {
-        if (!_pathClear(row, col, dir, rows, cols, occupied)) continue;
+      for (final (row, col) in empties) {
+        if (reachedTarget() || attempts >= _maxAttempts) break;
+        attempts++;
+        if (occupied.contains((row, col))) continue;
 
-        final (length, bends) = _growBody(
-          row,
-          col,
-          dir,
-          rows,
-          cols,
-          occupied,
-          maxLength,
-          bendChance,
-          maxBends,
-        );
+        final dirs = List<Direction>.from(Direction.values)..shuffle(_rng);
+        for (final dir in dirs) {
+          if (!_pathClear(row, col, dir, rows, cols, occupied)) continue;
 
-        final piece = ArrowPiece(
-          id: placed.length,
-          row: row,
-          col: col,
-          direction: dir,
-          length: length,
-          bends: bends,
-          accent: LevelSpec.accentAt(placed.length),
-        );
-        placed.add(piece);
-        occupied.addAll(piece.cells);
-        stall = 0;
-        break;
+          final (length, bends) = _growBody(
+            row,
+            col,
+            dir,
+            rows,
+            cols,
+            occupied,
+            maxLength,
+            bendChance,
+            maxBends,
+          );
+
+          final piece = ArrowPiece(
+            id: placed.length,
+            row: row,
+            col: col,
+            direction: dir,
+            length: length,
+            bends: bends,
+            accent: LevelSpec.accentAt(placed.length),
+          );
+          placed.add(piece);
+          occupied.addAll(piece.cells);
+          sweeping = true;
+          break;
+        }
       }
     }
 
@@ -89,7 +120,32 @@ class LevelGenerator {
       label: label,
       difficulty: difficulty,
       arrows: placed,
+      captives: captives,
     );
+  }
+
+  /// Drops [count] animal pens into the middle band of the board, far enough
+  /// apart that their fences do not touch. Kept off the rim so the arrows
+  /// have room to close around them on every side.
+  List<Captive> _placeCaptives(int rows, int cols, int count) {
+    if (count <= 0 || rows < 9 || cols < 9) return const [];
+    const span = 2;
+    final out = <Captive>[];
+    const margin = 2;
+    for (var tries = 0; tries < 200 && out.length < count; tries++) {
+      final row = margin + _rng.nextInt(rows - span - margin * 2 + 1);
+      final col = margin + _rng.nextInt(cols - span - margin * 2 + 1);
+      final clash = out.any((o) =>
+          (row - o.row).abs() < span + 2 && (col - o.col).abs() < span + 2);
+      if (clash) continue;
+      out.add(Captive(
+        row: row,
+        col: col,
+        span: span,
+        kind: CaptiveKind.values[out.length % CaptiveKind.values.length],
+      ));
+    }
+    return out;
   }
 
   /// Grows a body backwards from the tip: a straight run first, then up to
@@ -336,25 +392,26 @@ class LevelCatalog {
     var id = _handcrafted.length + 1;
 
     // (label, rows, cols, fill, maxLength, bendChance, maxBends, count,
-    // difficulty). Boards grow, arrows get longer and corners get both more
+    // difficulty, captives). Boards grow, arrows get longer and corners get both more
     // likely and more numerous together, so late packs read like the dense
     // woven maze — a six-turn body on Endless Edge is a square wave — while
     // staying generated in reverse-removal (always solvable) order. Warmup
     // keeps to a single corner; the tutorial has only just introduced them.
+    // Animals show up once a board is wide enough to close around them.
     final packDefs =
-        <(String, int, int, double, int, double, int, int, String)>[
-      ('Warmup', 7, 7, 0.42, 4, 0.20, 1, 4, 'Easy'),
-      ('Warmup', 8, 8, 0.46, 4, 0.25, 1, 4, 'Easy'),
-      ('Focus', 9, 9, 0.50, 5, 0.30, 2, 5, 'Medium'),
-      ('Focus', 10, 10, 0.54, 5, 0.35, 2, 5, 'Medium'),
-      ('Tangled', 11, 11, 0.60, 6, 0.45, 2, 6, 'Medium'),
-      ('Tangled', 12, 12, 0.63, 7, 0.50, 2, 6, 'Medium'),
-      ('Pressure', 13, 13, 0.66, 8, 0.60, 3, 7, 'Hard'),
-      ('Pressure', 14, 14, 0.69, 9, 0.65, 3, 7, 'Hard'),
-      ('Master', 15, 15, 0.72, 11, 0.70, 4, 7, 'Hard'),
-      ('Master', 16, 16, 0.74, 12, 0.75, 4, 7, 'Hard'),
-      ('Endless Edge', 17, 17, 0.76, 14, 0.80, 5, 8, 'Expert'),
-      ('Endless Edge', 18, 18, 0.78, 16, 0.85, 6, 8, 'Expert'),
+        <(String, int, int, double, int, double, int, int, String, int)>[
+      ('Warmup', 7, 7, 0.46, 4, 0.20, 1, 4, 'Easy', 0),
+      ('Warmup', 8, 8, 0.52, 4, 0.25, 1, 4, 'Easy', 0),
+      ('Focus', 9, 9, 0.58, 5, 0.30, 2, 5, 'Medium', 1),
+      ('Focus', 10, 10, 0.63, 5, 0.35, 2, 5, 'Medium', 1),
+      ('Tangled', 11, 11, 0.68, 6, 0.45, 2, 6, 'Medium', 1),
+      ('Tangled', 12, 12, 0.72, 7, 0.50, 2, 6, 'Medium', 2),
+      ('Pressure', 13, 13, 0.76, 8, 0.60, 3, 7, 'Hard', 2),
+      ('Pressure', 14, 14, 0.80, 9, 0.65, 3, 7, 'Hard', 2),
+      ('Master', 15, 15, 0.83, 11, 0.70, 4, 7, 'Hard', 2),
+      ('Master', 16, 16, 0.85, 12, 0.75, 4, 7, 'Hard', 2),
+      ('Endless Edge', 17, 17, 0.88, 14, 0.80, 5, 8, 'Expert', 3),
+      ('Endless Edge', 18, 18, 0.90, 16, 0.85, 6, 8, 'Expert', 3),
     ];
 
     for (final pack in packDefs) {
@@ -367,7 +424,8 @@ class LevelCatalog {
         bendChance,
         maxBends,
         count,
-        difficulty
+        difficulty,
+        captives
       ) = pack;
       for (var i = 0; i < count; i++) {
         levels.add(
@@ -379,6 +437,7 @@ class LevelCatalog {
             maxLength: maxLength,
             bendChance: bendChance,
             maxBends: maxBends,
+            captiveCount: captives,
             difficulty: difficulty,
             label: '$label $id',
           ),

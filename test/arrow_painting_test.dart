@@ -27,10 +27,35 @@ void main() {
       );
       final bounds = path.getBounds();
       expect(bounds.isEmpty, isFalse, reason: 'length $length drew nothing');
-      // The head is as wide as the chevron even when the shaft is a stub.
-      expect(bounds.height, greaterThan(cell * 0.5), reason: 'length $length');
+      // The chevron is scaled to the run it sits on, so a single-cell arrow
+      // gets a smaller head than a long one — but still a legible arrow, not
+      // a bare tick.
+      expect(bounds.height, greaterThan(cell * 0.4), reason: 'length $length');
       expect(bounds.width, greaterThan(cell * 0.5), reason: 'length $length');
     }
+  });
+
+  test('a body that turns at the tip still leads with its head', () {
+    // length 1 then an immediate turn: the second cell sits beside the tip,
+    // not behind it, so the head has to follow the arrow's facing rather
+    // than the first segment of the body.
+    final arrow = ArrowPiece(
+      id: 0,
+      row: 3,
+      col: 3,
+      direction: Direction.up,
+      length: 1,
+      bends: [(Direction.right, 3)],
+    );
+    final bounds = buildArrowPath(
+      spine: spineOf(arrow, cell),
+      direction: arrow.direction,
+      cell: cell,
+    ).getBounds();
+
+    final tipY = (arrow.row + 0.5) * cell;
+    expect(bounds.top, lessThan(tipY - cell * 0.25),
+        reason: 'the head should reach past the tip cell, pointing up');
   });
 
   test('a bent arrow is drawn across every cell it turns through', () {

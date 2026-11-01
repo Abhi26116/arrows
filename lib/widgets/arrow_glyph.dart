@@ -99,6 +99,19 @@ Path buildArrowPath({
     spun = [spun.first, spun.first - u * (cell * 0.02)];
   }
   final points = extendSpine(spun, reach);
+  if (spun.length > 1) {
+    final back = spun[1] - spun[0];
+    if (back.dx * u.dx + back.dy * u.dy >= 0) {
+      // The body turns at the tip itself: the second cell sits beside the
+      // tip, not behind it. extendSpine leads with that first segment, which
+      // would push the stub sideways while the chevron points along the
+      // arrow's facing — the two disagree and the head reads as broken. Lead
+      // with the facing instead, and keep the tip centre as the corner the
+      // body turns around.
+      points[0] = spun.first;
+      points.insert(0, spun.first + u * reach);
+    }
+  }
 
   final radius = cell * 0.45;
   path.moveTo(points.last.dx, points.last.dy);
@@ -122,7 +135,16 @@ Path buildArrowPath({
   path.lineTo(tip.dx, tip.dy);
 
   final perp = Offset(-u.dy, u.dx);
-  final head = (cell * 0.34).clamp(3.5, 18.0);
+  // The chevron is scaled to how much arrow there is to carry it. A one-cell
+  // arrow is mostly end-reach, and a full-size head there reaches back past
+  // the stub it sits on, leaving a bare ">" with a nub behind it. Measured
+  // over the whole path, not the last segment, so a long body that happens
+  // to turn near its tip still gets a full-size head.
+  var span = 0.0;
+  for (var i = 0; i < points.length - 1; i++) {
+    span += (points[i + 1] - points[i]).distance;
+  }
+  final head = math.min(cell * 0.34, span * 0.4).clamp(3.5, 18.0);
   path
     ..moveTo(tip.dx - u.dx * head + perp.dx * head * 0.8,
         tip.dy - u.dy * head + perp.dy * head * 0.8)
@@ -508,4 +530,40 @@ class _Blob extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Draws an icon glyph with the same bloom the arrows get, so a penned animal
+/// sits in the board's own neon rather than on top of it as flat artwork.
+void drawNeonGlyph(
+  Canvas canvas,
+  IconData icon, {
+  required Offset center,
+  required double size,
+  required Color color,
+  double opacity = 1,
+  bool bloom = true,
+}) {
+  void pass(double blur, double strength) {
+    final paint = Paint()..color = color.withOpacity(strength * opacity);
+    if (blur > 0) {
+      paint.maskFilter = MaskFilter.blur(BlurStyle.normal, blur);
+    }
+    final tp = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: size,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          foreground: paint,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
+  }
+
+  if (bloom) pass(size * 0.30, 0.30);
+  pass(size * 0.08, 0.55);
+  pass(0, 1);
 }
