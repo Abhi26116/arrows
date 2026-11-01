@@ -339,29 +339,34 @@ class MiniBoardArt extends StatefulWidget {
   final double height;
 
   /// Hand-placed on a 4x6 grid, bends included, so Home advertises the shape
-  /// of the real boards.
+  /// of the real boards. No two of these may share a cell — they are drawn
+  /// straight through without a board behind them, so an overlap shows up as
+  /// two arrows sitting on top of each other.
   static final arrows = <ArrowPiece>[
-    ArrowPiece(id: 0, row: 0, col: 0, direction: Direction.left, length: 2),
+    // Top row, meeting in the middle.
+    ArrowPiece(id: 0, row: 0, col: 0, direction: Direction.left, length: 3),
     ArrowPiece(id: 1, row: 0, col: 5, direction: Direction.right, length: 3),
+    // A mirrored pair of elbows down the two sides.
     ArrowPiece(
       id: 2,
       row: 1,
       col: 0,
       direction: Direction.left,
-      length: 3,
+      length: 2,
       bends: [(Direction.down, 2)],
     ),
-    ArrowPiece(id: 3, row: 2, col: 5, direction: Direction.right, length: 2),
     ArrowPiece(
-      id: 4,
-      row: 3,
-      col: 2,
-      direction: Direction.down,
-      length: 3,
-      bends: [(Direction.right, 2)],
+      id: 3,
+      row: 1,
+      col: 5,
+      direction: Direction.right,
+      length: 2,
+      bends: [(Direction.down, 2)],
       accent: true,
     ),
-    ArrowPiece(id: 5, row: 3, col: 4, direction: Direction.left, length: 2),
+    // Two short ones filling the middle.
+    ArrowPiece(id: 4, row: 2, col: 3, direction: Direction.right, length: 2),
+    ArrowPiece(id: 5, row: 3, col: 2, direction: Direction.left, length: 2),
   ];
 
   @override

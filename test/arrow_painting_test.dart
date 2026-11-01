@@ -58,6 +58,21 @@ void main() {
         reason: 'the head should reach past the tip cell, pointing up');
   });
 
+  test('the home artwork never stacks two arrows on one cell', () {
+    // Home draws these straight through with no board behind them, so a
+    // shared cell reads as one arrow printed over another.
+    final seen = <(int, int), int>{};
+    for (final arrow in MiniBoardArt.arrows) {
+      for (final cell in arrow.cells) {
+        expect(seen.containsKey(cell), isFalse,
+            reason: 'arrow ${arrow.id} lands on ${seen[cell]} at $cell');
+        seen[cell] = arrow.id;
+        expect(cell.$1, inInclusiveRange(0, 3), reason: 'row off the grid');
+        expect(cell.$2, inInclusiveRange(0, 5), reason: 'col off the grid');
+      }
+    }
+  });
+
   test('a bent arrow is drawn across every cell it turns through', () {
     final arrow = ArrowPiece(
       id: 0,
