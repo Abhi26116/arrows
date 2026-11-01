@@ -136,18 +136,52 @@ here — it ships from this Mac.
 Privacy policy URL (required — the app serves ads and sells IAP), Data Safety
 form, privacy nutrition labels, screenshots, description, content rating.
 
-### 6. Worth doing, not blocking
+### 6. Android toolchain — pinned to API 36
 
-- **Target API level** — Flutter 3.24.5 defaults to `targetSdk 34`. Play
-  requires a newer level for new apps; bump via a Flutter upgrade or by setting
-  `targetSdk`/`compileSdk` explicitly in `android/app/build.gradle`.
-- **App Tracking Transparency** — the UMP consent flow is wired up
-  (`lib/services/consent_service.dart`, shown before the ads SDK starts, with a
-  "Privacy options" entry in Settings). iOS still needs an ATT prompt on top of
-  it for personalised ads; without it iOS ads stay non-personalised and pay
-  significantly less. That needs the `app_tracking_transparency` package plus
-  an `NSUserTrackingUsageDescription` string.
+`android/app/build.gradle` is at `compileSdk`/`targetSdk 36`, above Flutter
+3.24.5's defaults, for two reasons that arrived together:
+
+- Play has required **target API 36** for new apps and updates since
+  2026-08-31. A bundle at 35 is rejected.
+- `in_app_update` 4.2.5 compiles against SDK 36 and ships the Kotlin 2.2
+  stdlib. The old Kotlin 1.9.24 compiler could not read its metadata
+  ("binary version of its metadata is 2.2.0, expected version is 1.9.0"), so
+  `bundleRelease` failed outright.
+
+That forced the toolchain up as a set, since each step has a floor:
+
+| | Was | Now |
+|---|---|---|
+| Kotlin | 1.9.24 | 2.2.10 |
+| AGP | 8.3.2 | 8.9.1 |
+| Gradle wrapper | 8.7 | 8.11.1 |
+| compileSdk / targetSdk | 35 | 36 |
+
+Do not lower one without the others. Pinning `in_app_update` back to 4.2.3
+would fix the build but still leave the bundle rejected by Play.
+
+Two warnings are expected and harmless:
+
+- Plugins ask for NDK 27.0.12077973 while the project declares 25.1.8937393.
+  No NDK is installed on this Mac and nothing in this app compiles native
+  code, so the declared version is never resolved. Raising it would pull a
+  ~3GB download for nothing.
+- `source/target value 8 is obsolete`. Java 8 compatibility is still what
+  Flutter 3.24.5's template sets; raising it is unrelated to shipping.
+
+### 7. Worth doing, not blocking
+
+- **App Tracking Transparency** — done. The UMP consent flow
+  (`lib/services/consent_service.dart`) runs before the ads SDK starts, with a
+  "Privacy options" entry in Settings, and `_requestTracking()` raises the ATT
+  prompt on iOS afterwards. `NSUserTrackingUsageDescription` is in
+  `Info.plist` and `PrivacyInfo.xcprivacy` declares `NSPrivacyTracking`.
 - **Firebase leaderboard** — was removed only because of Xcode 15.2. Codemagic
   can build it, but re-adding it stops this Mac from building iOS locally.
+- **Store listing languages** — the app ships five locales (en/es/hi/id/pt)
+  but `store/listing.md` is English-only and its "What's New" predates them.
+  Both stores take localised listings.
+- `assets/fonts/Syne.ttf` is unused — nothing references it and it is not
+  declared in `pubspec.yaml`. Safe to delete.
 - Android `applicationId` is `com.arrowsgame.arrows_game` while the iOS bundle
   id is `com.arrowsgame.arrowsGame`. Neither can change after publishing.

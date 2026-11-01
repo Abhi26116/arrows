@@ -15,9 +15,11 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.arrowsgame.arrows_game"
-    // Pinned above Flutter 3.24's defaults: plugins need SDK 35 and NDK 25,
-    // and Play requires a recent target API for new releases.
-    compileSdk = 35
+    // Pinned above Flutter 3.24's defaults: in_app_update compiles against
+    // SDK 36, and Play has required target API 36 for new apps and updates
+    // since 2026-08-31. Kotlin is 2.2.x to match the stdlib that plugin
+    // ships — 1.9 cannot read its metadata. See EXTRAS.md.
+    compileSdk = 36
     ndkVersion = "25.1.8937393"
 
     compileOptions {
@@ -34,7 +36,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
