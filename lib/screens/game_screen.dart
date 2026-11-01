@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../audio/sfx.dart';
@@ -34,6 +36,21 @@ class GameScreen extends StatefulWidget {
 
 /// Width of the button cluster on each side of the header title.
 const double _sideCluster = 48 * 2 + 10;
+
+/// Gap between the board and the screen edge. Small on purpose: the board is
+/// square, so its width is what sizes it on a phone, and every point of
+/// padding is a point off every cell.
+const double _boardGutter = 4;
+
+/// Height the floating hint and grid buttons need in the bottom-right.
+const double _buttonBand = 120;
+
+/// Most empty space allowed above the board. A square board leaves slack on a
+/// tall screen, and splitting that slack evenly drops half of it under the
+/// progress bar as a dead band while the buttons stay pinned to the bottom.
+/// Capping the top share keeps the board near the header and lets the rest
+/// fall where the buttons already are.
+const double _topSlackCap = 32;
 
 class _GameScreenState extends State<GameScreen> {
   late PlaySession _session;
@@ -672,49 +689,84 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      // Extra bottom padding lifts the board clear of the
-                      // floating buttons and balances the header above it.
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 4, 14, 92),
-                        child: GameBoard(
-                          session: _session,
-                          onTap: _onTap,
-                          showGrid: _showGrid,
-                          hintId: _hintId,
-                          animatingId: _animatingId,
-                          animArrow: _animArrow,
-                          animPath: _animPath,
-                          blockedId: _blockedId,
-                          blockedNonce: _blockedNonce,
-                          onAnimComplete: _onAnimComplete,
-                        ),
-                      ),
-                      Positioned(
-                        right: 16,
-                        bottom: 16,
-                        child: Column(
-                          children: [
-                            CircleIconButton(
-                              icon: Icons.lightbulb_outline_rounded,
-                              accent: true,
-                              tooltip: l.gameTooltipHint,
-                              onTap: _busy ? null : _hint,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // A square board never uses the full height of this
+                      // column, and the leftover sits under it — which is
+                      // where the floating buttons live. So only pay for the
+                      // button band with padding on the short screens where
+                      // that leftover does not already clear them. A fixed
+                      // reservation would cost a tall phone board size it
+                      // did not need to give up.
+                      final side = constraints.maxWidth - _boardGutter * 2;
+                      // How much bottom padding the buttons still need once
+                      // that leftover is counted; at or below the gutter they
+                      // are already clear.
+                      final needed = 2 * _buttonBand -
+                          constraints.maxHeight +
+                          _boardGutter +
+                          side;
+                      final bottom = needed <= _boardGutter
+                          ? _boardGutter
+                          : math.min(needed, constraints.maxHeight / 2);
+                      // Whatever height is left once the buttons are paid for.
+                      // The board is the smaller of that and its own width, so
+                      // a short screen still hands it every point there is.
+                      final inner = math.max(
+                          0.0, constraints.maxHeight - _boardGutter - bottom);
+                      final box = math.min(side, inner);
+                      final top = _boardGutter +
+                          math.min((inner - box) / 2, _topSlackCap);
+                      return Stack(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(
+                                _boardGutter, top, _boardGutter, bottom),
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: SizedBox(
+                                height: box,
+                                child: GameBoard(
+                                  session: _session,
+                                  onTap: _onTap,
+                                  showGrid: _showGrid,
+                                  hintId: _hintId,
+                                  animatingId: _animatingId,
+                                  animArrow: _animArrow,
+                                  animPath: _animPath,
+                                  blockedId: _blockedId,
+                                  blockedNonce: _blockedNonce,
+                                  onAnimComplete: _onAnimComplete,
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            CircleIconButton(
-                              icon: Icons.grid_on_rounded,
-                              active: _showGrid,
-                              tooltip: _showGrid
-                                  ? l.gameTooltipHideGrid
-                                  : l.gameTooltipShowGrid,
-                              onTap: _toggleGrid,
+                          ),
+                          Positioned(
+                            right: 16,
+                            bottom: 16,
+                            child: Column(
+                              children: [
+                                CircleIconButton(
+                                  icon: Icons.lightbulb_outline_rounded,
+                                  accent: true,
+                                  tooltip: l.gameTooltipHint,
+                                  onTap: _busy ? null : _hint,
+                                ),
+                                const SizedBox(height: 12),
+                                CircleIconButton(
+                                  icon: Icons.grid_on_rounded,
+                                  active: _showGrid,
+                                  tooltip: _showGrid
+                                      ? l.gameTooltipHideGrid
+                                      : l.gameTooltipShowGrid,
+                                  onTap: _toggleGrid,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

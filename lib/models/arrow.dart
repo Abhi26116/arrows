@@ -1,12 +1,16 @@
-import 'dart:math' as math;
-
 import 'direction.dart';
 
-/// A single arrow piece.
+/// A single arrow piece, modelled as a path of cells.
 ///
-/// [row]/[col] are the **tip** cell (where the head is drawn). The body extends
-/// [length] cells backwards, opposite [direction], so a length-1 arrow occupies
-/// exactly its tip cell.
+/// [row]/[col] are the **tip** cell (where the head is drawn) and [direction]
+/// is the way the head points. The body runs backwards from the tip: first
+/// [length] cells straight back along the opposite of [direction], then one
+/// run per entry in [bends], each travelling further tailwards in its own
+/// direction. A length-1 arrow with no bends occupies exactly its tip cell.
+///
+/// An arrow leaves the board tip first, its body following its own track, so
+/// whether it can escape still depends only on the straight corridor ahead of
+/// the tip — bends change the shape, never the blocking rule.
 class ArrowPiece {
   ArrowPiece({
     required this.id,
@@ -14,36 +18,81 @@ class ArrowPiece {
     required this.col,
     required this.direction,
     this.length = 1,
-    this.colorIndex = 0,
+    this.bends = const [],
+    this.accent = false,
   });
 
   final int id;
-  int row;
-  int col;
+  final int row;
+  final int col;
   final Direction direction;
 
-  /// Number of cells the arrow occupies along its axis.
+  /// Cells in the first, straight run — including the tip.
   final int length;
-  final int colorIndex;
 
-  int get tailRow => row - direction.dRow * (length - 1);
-  int get tailCol => col - direction.dCol * (length - 1);
+  /// Further runs, tailwards, each `(travel direction, cell count)`.
+  final List<(Direction, int)> bends;
+
+  /// Painted in the theme's accent line colour. Decoration only: it carries
+  /// no gameplay meaning, it just breaks up a dense board the way the
+  /// reference art does.
+  final bool accent;
+
+  List<(int, int)>? _cells;
+
+  /// Every cell the arrow occupies, tip first, tail last.
+  List<(int, int)> get cells {
+    final cached = _cells;
+    if (cached != null) return cached;
+
+    final out = <(int, int)>[(row, col)];
+    var r = row;
+    var c = col;
+    final back = direction.opposite;
+    for (var i = 1; i < length; i++) {
+      r += back.dRow;
+      c += back.dCol;
+      out.add((r, c));
+    }
+    for (final (travel, count) in bends) {
+      for (var i = 0; i < count; i++) {
+        r += travel.dRow;
+        c += travel.dCol;
+        out.add((r, c));
+      }
+    }
+    return _cells = List.unmodifiable(out);
+  }
+
+  bool get isBent => bends.isNotEmpty;
+
+  (int, int) get tail => cells.last;
+  int get tailRow => tail.$1;
+  int get tailCol => tail.$2;
 
   bool get isHorizontal => direction.dRow == 0;
 
-  /// Every cell the arrow occupies, tip first.
-  List<(int, int)> get cells => [
-        for (var i = 0; i < length; i++)
-          (row - direction.dRow * i, col - direction.dCol * i),
-      ];
-
   bool covers(int r, int c) {
-    if (isHorizontal) {
-      if (r != row) return false;
-      return c >= math.min(col, tailCol) && c <= math.max(col, tailCol);
+    for (final cell in cells) {
+      if (cell.$1 == r && cell.$2 == c) return true;
     }
-    if (c != col) return false;
-    return r >= math.min(row, tailRow) && r <= math.max(row, tailRow);
+    return false;
+  }
+
+  /// True when part of the body sits in the arrow's own flight path, which
+  /// would make it run into itself on the way out. Levels must never contain
+  /// one; the generator refuses to build them.
+  bool get blocksItself {
+    final body = cells;
+    for (var i = 1; i < body.length; i++) {
+      final (r, c) = body[i];
+      if (isHorizontal) {
+        if (r == row && (c - col) * direction.dCol > 0) return true;
+      } else {
+        if (c == col && (r - row) * direction.dRow > 0) return true;
+      }
+    }
+    return false;
   }
 
   ArrowPiece copy() => ArrowPiece(
@@ -52,6 +101,7 @@ class ArrowPiece {
         col: col,
         direction: direction,
         length: length,
-        colorIndex: colorIndex,
+        bends: bends,
+        accent: accent,
       );
 }

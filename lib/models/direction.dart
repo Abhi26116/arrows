@@ -28,6 +28,25 @@ enum Direction {
     }
   }
 
+  Direction get opposite {
+    switch (this) {
+      case Direction.up:
+        return Direction.down;
+      case Direction.down:
+        return Direction.up;
+      case Direction.left:
+        return Direction.right;
+      case Direction.right:
+        return Direction.left;
+    }
+  }
+
+  /// The two directions at right angles to this one — the turns a bent arrow
+  /// body is allowed to take.
+  List<Direction> get perpendicular => dRow == 0
+      ? const [Direction.up, Direction.down]
+      : const [Direction.left, Direction.right];
+
   double get angle {
     switch (this) {
       case Direction.up:

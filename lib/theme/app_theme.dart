@@ -19,6 +19,8 @@ class AppColors {
   static List<Color> get arrowPalette =>
       ThemeController.instance.palette.arrowPalette;
   static Color get arrowLine => ThemeController.instance.palette.arrowLine;
+  static Color get arrowAccent =>
+      ThemeController.instance.palette.arrowAccent;
 }
 
 class AppTheme {

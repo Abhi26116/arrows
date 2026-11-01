@@ -17,6 +17,10 @@ class LevelGenerator {
   static const int _stallLimit = 2500;
   static const int _maxAttempts = 60000;
 
+  /// Shortest run after a turn: a single-cell jog reads as a glitch rather
+  /// than a corner.
+  static const int _minBendRun = 2;
+
   LevelData generate({
     required int id,
     required int rows,
@@ -24,6 +28,8 @@ class LevelGenerator {
     int? arrowCount,
     double fill = 0,
     int maxLength = 1,
+    double bendChance = 0,
+    int maxBends = 2,
     String difficulty = 'Easy',
     String? label,
   }) {
@@ -48,16 +54,26 @@ class LevelGenerator {
       for (final dir in dirs) {
         if (!_pathClear(row, col, dir, rows, cols, occupied)) continue;
 
-        final fits = _bodyRoom(row, col, dir, rows, cols, occupied, maxLength);
-        if (fits < 1) continue;
+        final (length, bends) = _growBody(
+          row,
+          col,
+          dir,
+          rows,
+          cols,
+          occupied,
+          maxLength,
+          bendChance,
+          maxBends,
+        );
 
         final piece = ArrowPiece(
           id: placed.length,
           row: row,
           col: col,
           direction: dir,
-          length: _pickLength(fits),
-          colorIndex: placed.length % 6,
+          length: length,
+          bends: bends,
+          accent: LevelSpec.accentAt(placed.length),
         );
         placed.add(piece);
         occupied.addAll(piece.cells);
@@ -76,17 +92,13 @@ class LevelGenerator {
     );
   }
 
-  /// Biased toward longer arrows so boards read like the woven-line reference
-  /// art instead of a field of dots.
-  int _pickLength(int maxFit) {
-    if (maxFit <= 1) return 1;
-    final a = 1 + _rng.nextInt(maxFit);
-    final b = 1 + _rng.nextInt(maxFit);
-    return a > b ? a : b;
-  }
-
-  /// How many cells (including the tip) the body can occupy behind the tip.
-  int _bodyRoom(
+  /// Grows a body backwards from the tip: a straight run first, then up to
+  /// [maxBends] right-angle turns, so dense boards read like a woven maze of
+  /// bent paths instead of a field of parallel sticks.
+  ///
+  /// Body cells never enter the arrow's own flight path, so the arrow can
+  /// always slide out tip-first along its own track.
+  (int, List<(Direction, int)>) _growBody(
     int row,
     int col,
     Direction dir,
@@ -94,16 +106,87 @@ class LevelGenerator {
     int cols,
     Set<(int, int)> occupied,
     int maxLength,
+    double bendChance,
+    int maxBends,
   ) {
-    var room = 1;
-    for (var i = 1; i < maxLength; i++) {
-      final r = row - dir.dRow * i;
-      final c = col - dir.dCol * i;
-      if (r < 0 || r >= rows || c < 0 || c >= cols) break;
-      if (occupied.contains((r, c))) break;
-      room++;
+    final taken = <(int, int)>{(row, col)};
+    var r = row;
+    var c = col;
+    var budget = maxLength - 1;
+
+    bool free(int rr, int cc) {
+      if (rr < 0 || rr >= rows || cc < 0 || cc >= cols) return false;
+      if (occupied.contains((rr, cc)) || taken.contains((rr, cc))) return false;
+      if (dir.dRow == 0) {
+        if (rr == row && (cc - col) * dir.dCol > 0) return false;
+      } else {
+        if (cc == col && (rr - row) * dir.dRow > 0) return false;
+      }
+      return true;
     }
-    return room;
+
+    int room(Direction travel, int limit) {
+      var n = 0;
+      var rr = r;
+      var cc = c;
+      while (n < limit) {
+        rr += travel.dRow;
+        cc += travel.dCol;
+        if (!free(rr, cc)) break;
+        n++;
+      }
+      return n;
+    }
+
+    void commit(Direction travel, int n) {
+      for (var i = 0; i < n; i++) {
+        r += travel.dRow;
+        c += travel.dCol;
+        taken.add((r, c));
+      }
+    }
+
+    final back = dir.opposite;
+    // Reserve room for the first turn up front: a greedy straight run would
+    // otherwise eat the whole length budget and corners would never appear.
+    var attemptBend = _rng.nextDouble() < bendChance;
+    final straightLimit = attemptBend ? max(1, budget - _minBendRun) : budget;
+    final straightRoom = room(back, straightLimit);
+    final straight = straightRoom < 1 ? 0 : _pickLength(straightRoom);
+    commit(back, straight);
+    budget -= straight;
+
+    final bends = <(Direction, int)>[];
+    var travel = back;
+    while (attemptBend && budget >= _minBendRun && bends.length < maxBends) {
+      final turns = List<Direction>.from(travel.perpendicular)..shuffle(_rng);
+      var turned = false;
+      for (final turn in turns) {
+        // A single-cell jog reads as a glitch rather than a corner.
+        final fits = room(turn, budget);
+        if (fits < _minBendRun) continue;
+        final run = _minBendRun + _rng.nextInt(fits - _minBendRun + 1);
+        commit(turn, run);
+        bends.add((turn, run));
+        budget -= run;
+        travel = turn;
+        turned = true;
+        break;
+      }
+      if (!turned) break;
+      attemptBend = _rng.nextDouble() < bendChance;
+    }
+
+    return (straight + 1, bends);
+  }
+
+  /// Biased toward longer arrows so boards read like the woven-line reference
+  /// art instead of a field of dots.
+  int _pickLength(int maxFit) {
+    if (maxFit <= 1) return 1;
+    final a = 1 + _rng.nextInt(maxFit);
+    final b = 1 + _rng.nextInt(maxFit);
+    return a > b ? a : b;
   }
 
   bool _pathClear(
@@ -167,9 +250,13 @@ class LevelCatalog {
     ];
   }
 
-  /// Tutorial boards stay small and hand-placed — they introduce arrow length.
-  /// Placements are `[tipRow, tipCol, directionIndex, length]`; the body runs
-  /// backwards from the tip, so an up-arrow's tail sits *below* it.
+  /// Tutorial boards stay small and hand-placed. They introduce arrow length
+  /// first, then corners: level 5 hides one bend among straight arrows and
+  /// level 6 builds a chain around two of them.
+  ///
+  /// Placements are `[tipRow, tipCol, directionIndex, length]` plus optional
+  /// `directionIndex, runLength` pairs for each bend; the body runs backwards
+  /// from the tip, so an up-arrow's tail sits *below* it.
   static final List<LevelData> _handcrafted = [
     const LevelSpec(
       rows: 3,
@@ -218,7 +305,9 @@ class LevelCatalog {
         [1, 4, 1, 2],
         [2, 4, 2, 1],
         [2, 2, 1, 2],
-        [4, 2, 2, 2],
+        // First corner the player meets: the body turns up behind the tip,
+        // which is what puts arrow 2 behind it in the queue.
+        [4, 2, 2, 2, 0, 2],
         [2, 0, 0, 3],
       ],
     ).toLevel(5),
@@ -226,14 +315,18 @@ class LevelCatalog {
       rows: 6,
       cols: 6,
       label: 'Knot',
+      // One free arrow and one eight-long chain, hinged on the two bent
+      // bodies: each arrow's only way out runs through the next one's cells.
       placements: [
-        [0, 2, 3, 3],
-        [0, 4, 1, 1],
-        [2, 4, 2, 2],
-        [2, 1, 1, 2],
-        [4, 3, 3, 3],
-        [5, 5, 1, 2],
-        [1, 5, 2, 1],
+        [0, 0, 0, 1],
+        [0, 2, 1, 1],
+        [3, 2, 2, 2, 1, 2],
+        [3, 1, 0, 3],
+        [1, 1, 3, 2],
+        [1, 4, 1, 2],
+        [2, 4, 3, 2],
+        [2, 5, 1, 2],
+        [3, 5, 3, 2, 1, 2],
       ],
     ).toLevel(6),
   ];
@@ -242,26 +335,40 @@ class LevelCatalog {
     final levels = <LevelData>[];
     var id = _handcrafted.length + 1;
 
-    // (label, rows, cols, fill, maxLength, count, difficulty). Boards grow and
-    // arrows get longer together, so late packs look like the dense woven grid
-    // while staying generated in reverse-removal (always solvable) order.
-    final packDefs = <(String, int, int, double, int, int, String)>[
-      ('Warmup', 7, 7, 0.42, 3, 4, 'Easy'),
-      ('Warmup', 8, 8, 0.46, 3, 4, 'Easy'),
-      ('Focus', 9, 9, 0.50, 4, 5, 'Medium'),
-      ('Focus', 10, 10, 0.54, 4, 5, 'Medium'),
-      ('Tangled', 11, 11, 0.56, 5, 6, 'Medium'),
-      ('Tangled', 12, 12, 0.58, 5, 6, 'Medium'),
-      ('Pressure', 13, 13, 0.60, 6, 7, 'Hard'),
-      ('Pressure', 14, 14, 0.62, 7, 7, 'Hard'),
-      ('Master', 15, 15, 0.64, 8, 7, 'Hard'),
-      ('Master', 16, 16, 0.66, 9, 7, 'Hard'),
-      ('Endless Edge', 17, 17, 0.68, 10, 8, 'Expert'),
-      ('Endless Edge', 18, 18, 0.70, 12, 8, 'Expert'),
+    // (label, rows, cols, fill, maxLength, bendChance, maxBends, count,
+    // difficulty). Boards grow, arrows get longer and corners get both more
+    // likely and more numerous together, so late packs read like the dense
+    // woven maze — a six-turn body on Endless Edge is a square wave — while
+    // staying generated in reverse-removal (always solvable) order. Warmup
+    // keeps to a single corner; the tutorial has only just introduced them.
+    final packDefs =
+        <(String, int, int, double, int, double, int, int, String)>[
+      ('Warmup', 7, 7, 0.42, 4, 0.20, 1, 4, 'Easy'),
+      ('Warmup', 8, 8, 0.46, 4, 0.25, 1, 4, 'Easy'),
+      ('Focus', 9, 9, 0.50, 5, 0.30, 2, 5, 'Medium'),
+      ('Focus', 10, 10, 0.54, 5, 0.35, 2, 5, 'Medium'),
+      ('Tangled', 11, 11, 0.60, 6, 0.45, 2, 6, 'Medium'),
+      ('Tangled', 12, 12, 0.63, 7, 0.50, 2, 6, 'Medium'),
+      ('Pressure', 13, 13, 0.66, 8, 0.60, 3, 7, 'Hard'),
+      ('Pressure', 14, 14, 0.69, 9, 0.65, 3, 7, 'Hard'),
+      ('Master', 15, 15, 0.72, 11, 0.70, 4, 7, 'Hard'),
+      ('Master', 16, 16, 0.74, 12, 0.75, 4, 7, 'Hard'),
+      ('Endless Edge', 17, 17, 0.76, 14, 0.80, 5, 8, 'Expert'),
+      ('Endless Edge', 18, 18, 0.78, 16, 0.85, 6, 8, 'Expert'),
     ];
 
     for (final pack in packDefs) {
-      final (label, rows, cols, fill, maxLength, count, difficulty) = pack;
+      final (
+        label,
+        rows,
+        cols,
+        fill,
+        maxLength,
+        bendChance,
+        maxBends,
+        count,
+        difficulty
+      ) = pack;
       for (var i = 0; i < count; i++) {
         levels.add(
           _gen.generate(
@@ -270,6 +377,8 @@ class LevelCatalog {
             cols: cols,
             fill: fill,
             maxLength: maxLength,
+            bendChance: bendChance,
+            maxBends: maxBends,
             difficulty: difficulty,
             label: '$label $id',
           ),

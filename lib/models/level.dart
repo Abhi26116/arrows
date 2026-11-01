@@ -44,25 +44,42 @@ class LevelSpec {
   final String? label;
   final String difficulty;
 
-  /// Each entry: `[row, col, directionIndex]` or `[row, col, directionIndex,
-  /// length]`, where row/col is the arrow tip, directionIndex maps to
-  /// `Direction.values` and length defaults to 1.
+  /// Each entry is `[row, col, directionIndex]`, optionally followed by
+  /// `length`, then by any number of `directionIndex, runLength` pairs.
+  ///
+  /// row/col is the arrow tip, directionIndex maps to `Direction.values` and
+  /// length (default 1) counts the straight run back from the tip. Each extra
+  /// pair bends the body, travelling further tailwards in that direction — so
+  /// `[2, 6, 2, 4, 0, 3]` is an arrow pointing left with a four-cell shaft
+  /// that then turns and runs three cells up.
   final List<List<int>> placements;
+
+  /// Every seventh arrow is painted in the accent colour. Decoration only —
+  /// it spaces the highlights out evenly across a board.
+  static bool accentAt(int index) => index % 7 == 3;
 
   LevelData toLevel(int id) {
     final arrows = <ArrowPiece>[];
     for (var i = 0; i < placements.length; i++) {
       final p = placements[i];
-      arrows.add(
-        ArrowPiece(
-          id: i,
-          row: p[0],
-          col: p[1],
-          direction: Direction.values[p[2]],
-          length: p.length > 3 ? p[3] : 1,
-          colorIndex: i % 6,
-        ),
+      final bends = <(Direction, int)>[];
+      for (var j = 4; j + 1 < p.length; j += 2) {
+        bends.add((Direction.values[p[j]], p[j + 1]));
+      }
+      final piece = ArrowPiece(
+        id: i,
+        row: p[0],
+        col: p[1],
+        direction: Direction.values[p[2]],
+        length: p.length > 3 ? p[3] : 1,
+        bends: bends,
+        accent: accentAt(i),
       );
+      assert(
+        !piece.blocksItself,
+        'level $id arrow $i bends back into its own flight path',
+      );
+      arrows.add(piece);
     }
     return LevelData(
       id: id,

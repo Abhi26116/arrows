@@ -154,6 +154,7 @@ class _GameBoardState extends State<GameBoard> with TickerProviderStateMixin {
                 showGrid: widget.showGrid,
                 lineColor: AppColors.arrowLine,
                 gridColor: AppColors.gridLine,
+                accentLineColor: AppColors.arrowAccent,
                 hintColor: AppColors.accent,
                 blockedColor: AppColors.danger,
                 hintId: widget.hintId,
@@ -180,6 +181,7 @@ class _BoardPainter extends CustomPainter {
     required this.arrows,
     required this.showGrid,
     required this.lineColor,
+    required this.accentLineColor,
     required this.gridColor,
     required this.hintColor,
     required this.blockedColor,
@@ -198,6 +200,7 @@ class _BoardPainter extends CustomPainter {
   final List<ArrowPiece> arrows;
   final bool showGrid;
   final Color lineColor;
+  final Color accentLineColor;
   final Color gridColor;
   final Color hintColor;
   final Color blockedColor;
@@ -209,8 +212,23 @@ class _BoardPainter extends CustomPainter {
   final Animation<double> shake;
   final Animation<double> pulse;
 
+  /// Dense boards get a thinner bloom budget: the widest blur pass is the
+  /// expensive one and it muddies the picture once cells are tiny.
+  bool get _bloom => cell >= 18;
+
   Offset _center(int row, int col) =>
       Offset((col + 0.5) * cell, (row + 0.5) * cell);
+
+  List<Offset> _spine(ArrowPiece arrow, Offset shift) => [
+        for (final (r, c) in arrow.cells) _center(r, c) + shift,
+      ];
+
+  Path _arrowPath(ArrowPiece arrow, {Offset shift = Offset.zero}) =>
+      buildArrowPath(
+        spine: _spine(arrow, shift),
+        direction: arrow.direction,
+        cell: cell,
+      );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -242,59 +260,100 @@ class _BoardPainter extends CustomPainter {
       canvas.drawRRect(frame, border);
     }
 
+    final stroke = arrowStroke(cell);
+
+    // The quiet arrows go down as two batched paths, one per line colour, so
+    // a sixty-arrow board costs a handful of strokes instead of hundreds —
+    // and the blurred passes blend once rather than stacking at crossings.
+    final plain = Path();
+    final accent = Path();
+    final solo = <ArrowPiece>[];
+
     for (final arrow in arrows) {
-      var color = lineColor;
-      var glow = false;
-      var shift = Offset.zero;
+      final shaking = arrow.id == blockedId && shake.isAnimating;
+      if (arrow.id == hintId || shaking) {
+        solo.add(arrow);
+        continue;
+      }
+      (arrow.accent ? accent : plain).addPath(_arrowPath(arrow), Offset.zero);
+    }
 
+    strokeNeon(canvas, plain,
+        color: lineColor, stroke: stroke, bloom: _bloom);
+    strokeNeon(canvas, accent,
+        color: accentLineColor, stroke: stroke, bloom: _bloom);
+
+    for (final arrow in solo) {
+      final base = arrow.accent ? accentLineColor : lineColor;
       if (arrow.id == hintId) {
-        color = Color.lerp(lineColor, hintColor, 0.4 + 0.6 * pulse.value)!;
-        glow = true;
+        strokeNeon(
+          canvas,
+          _arrowPath(arrow),
+          color: Color.lerp(base, hintColor, 0.4 + 0.6 * pulse.value)!,
+          stroke: stroke,
+          bright: true,
+        );
+        continue;
       }
-      if (arrow.id == blockedId && shake.isAnimating) {
-        color = blockedColor;
-        // Bumps into the blocker and settles back.
-        final t = shake.value;
-        final bump =
-            math.sin(t * math.pi * 3) * cell * 0.22 * (1 - t).clamp(0.0, 1.0);
-        shift =
-            Offset(arrow.direction.dCol * bump, arrow.direction.dRow * bump);
-      }
-
-      _drawArrow(canvas, arrow, color, glow: glow, shift: shift);
-    }
-
-    final flying = animArrow;
-    if (flying != null && fly.isAnimating && animSteps > 0) {
-      final t = Curves.easeIn.transform(fly.value);
-      final distance = animSteps * cell * t;
-      final shift = Offset(
-        flying.direction.dCol * distance,
-        flying.direction.dRow * distance,
+      // Bumps into the blocker and settles back.
+      final t = shake.value;
+      final bump =
+          math.sin(t * math.pi * 3) * cell * 0.22 * (1 - t).clamp(0.0, 1.0);
+      final shift =
+          Offset(arrow.direction.dCol * bump, arrow.direction.dRow * bump);
+      strokeNeon(
+        canvas,
+        _arrowPath(arrow, shift: shift),
+        color: blockedColor,
+        stroke: stroke,
+        bright: true,
       );
-      final opacity = t < 0.7 ? 1.0 : (1 - (t - 0.7) / 0.3).clamp(0.0, 1.0);
-      _drawArrow(canvas, flying, lineColor,
-          glow: true, shift: shift, opacity: opacity);
     }
+
+    _paintFlight(canvas, stroke);
   }
 
-  void _drawArrow(
-    Canvas canvas,
-    ArrowPiece arrow,
-    Color color, {
-    bool glow = false,
-    Offset shift = Offset.zero,
-    double opacity = 1,
-  }) {
-    paintArrowLine(
+  /// A cleared arrow slides out along its own track, tip first, so a bent
+  /// body follows the corners it was drawn with instead of sliding sideways.
+  void _paintFlight(Canvas canvas, double stroke) {
+    final flying = animArrow;
+    if (flying == null || !fly.isAnimating || animSteps <= 0) return;
+
+    final u = Offset(
+      flying.direction.dCol.toDouble(),
+      flying.direction.dRow.toDouble(),
+    );
+    final home = _spine(flying, Offset.zero);
+    // Single-cell arrows have no body length of their own; give them the stub
+    // the static drawing shows so they do not vanish on the way out.
+    final bodyLen = math.max((home.length - 1) * cell, cell * 0.5);
+    final travel = animSteps * cell + bodyLen;
+    final steps = (travel / cell).ceil();
+    final track = <Offset>[
+      for (var i = steps; i >= 1; i--) home.first + u * (cell * i),
+      ...home,
+      // A single-cell arrow has no track behind its tip to slide along, so
+      // the slice would come back empty on the very first frame.
+      if (home.length == 1) home.first - u * bodyLen,
+    ];
+
+    final t = Curves.easeIn.transform(fly.value);
+    final tipArc = steps * cell - travel * t;
+    final slice = slicePolyline(track, tipArc, tipArc + bodyLen);
+    if (slice.length < 2) return;
+
+    final opacity = t < 0.8 ? 1.0 : (1 - (t - 0.8) / 0.2).clamp(0.0, 1.0);
+    strokeNeon(
       canvas,
-      tip: _center(arrow.row, arrow.col) + shift,
-      tail: _center(arrow.tailRow, arrow.tailCol) + shift,
-      direction: arrow.direction,
-      color: color,
-      cell: cell,
-      glow: glow,
+      buildArrowPath(
+        spine: slice,
+        direction: flying.direction,
+        cell: cell,
+      ),
+      color: flying.accent ? accentLineColor : lineColor,
+      stroke: stroke,
       opacity: opacity,
+      bright: true,
     );
   }
 
