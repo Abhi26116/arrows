@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../audio/sfx.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrows_game/l10n/app_localizations.dart';
 
 import '../data/progress_store.dart';
 import '../logic/game_controller.dart';

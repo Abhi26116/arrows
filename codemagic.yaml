@@ -16,7 +16,10 @@ definitions:
       script: flutter pub get
     - &analyze_and_test
       name: Analyze and test
+      # set -e or only the last command decides the step: a failing analyze
+      # would be swallowed by a passing test run.
       script: |
+        set -e
         flutter analyze
         flutter test
 

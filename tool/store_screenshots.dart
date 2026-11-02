@@ -23,7 +23,7 @@ import 'package:arrows_game/screens/shop_screen.dart';
 import 'package:arrows_game/services/iap_service.dart';
 import 'package:arrows_game/screens/themes_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrows_game/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

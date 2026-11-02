@@ -19,7 +19,7 @@ import 'package:arrows_game/main.dart';
 import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:arrows_game/widgets/game_board.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrows_game/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
