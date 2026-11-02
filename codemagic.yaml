@@ -18,9 +18,15 @@ definitions:
       name: Analyze and test
       # set -e or only the last command decides the step: a failing analyze
       # would be swallowed by a passing test run.
+      #
+      # Infos are not fatal here because CI runs a newer Flutter than the dev
+      # Mac can (see EXTRAS.md): `withOpacity` is merely current at 3.24.5 and
+      # deprecated on stable, and its replacement `withValues` does not exist
+      # at 3.24.5, so there is no spelling that is clean on both. Errors and
+      # warnings still fail the build.
       script: |
         set -e
-        flutter analyze
+        flutter analyze --no-fatal-infos
         flutter test
 
 workflows:
