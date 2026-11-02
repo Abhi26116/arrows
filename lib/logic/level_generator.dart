@@ -80,7 +80,17 @@ class LevelGenerator {
         attempts++;
         if (occupied.contains((row, col))) continue;
 
+        // Try every way the arrow could face and keep the one that grows the
+        // longest body, rather than the first that merely fits. On a packed
+        // board most directions back straight into another arrow and give a
+        // single cell, so taking the first leaves a field of stubs; taking
+        // the best keeps the long woven bodies the late packs are built on.
         final dirs = List<Direction>.from(Direction.values)..shuffle(_rng);
+        Direction? bestDir;
+        var bestLength = 0;
+        List<(Direction, int)> bestBends = const [];
+        var bestCells = 0;
+
         for (final dir in dirs) {
           if (!_pathClear(row, col, dir, rows, cols, occupied)) continue;
 
@@ -95,21 +105,32 @@ class LevelGenerator {
             bendChance,
             maxBends,
           );
-
-          final piece = ArrowPiece(
-            id: placed.length,
-            row: row,
-            col: col,
-            direction: dir,
-            length: length,
-            bends: bends,
-            accent: LevelSpec.accentAt(placed.length),
-          );
-          placed.add(piece);
-          occupied.addAll(piece.cells);
-          sweeping = true;
-          break;
+          var cells = length;
+          for (final (_, run) in bends) {
+            cells += run;
+          }
+          if (cells > bestCells) {
+            bestCells = cells;
+            bestDir = dir;
+            bestLength = length;
+            bestBends = bends;
+          }
         }
+
+        if (bestDir == null) continue;
+
+        final piece = ArrowPiece(
+          id: placed.length,
+          row: row,
+          col: col,
+          direction: bestDir,
+          length: bestLength,
+          bends: bestBends,
+          accent: LevelSpec.accentAt(placed.length),
+        );
+        placed.add(piece);
+        occupied.addAll(piece.cells);
+        sweeping = true;
       }
     }
 
@@ -211,6 +232,12 @@ class LevelGenerator {
     final straight = straightRoom < 1 ? 0 : _pickLength(straightRoom);
     commit(back, straight);
     budget -= straight;
+
+    // A body may only turn once the head has a whole cell of straight shaft
+    // behind it. With none, the tip sits right on the corner: the chevron
+    // overlaps the rounding and reads as a kink in the line rather than an
+    // arrowhead. When there was no room to back up, stay a plain arrow.
+    if (straight < 1) attemptBend = false;
 
     final bends = <(Direction, int)>[];
     var travel = back;

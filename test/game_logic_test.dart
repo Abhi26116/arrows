@@ -204,6 +204,18 @@ void main() {
     }
   });
 
+  test('a bent body always has a straight cell under its head', () {
+    // With none, the tip sits on the corner itself: the chevron overlaps the
+    // rounding and the arrow reads as a kink in the line, not an arrowhead.
+    for (final level in LevelCatalog.all) {
+      for (final arrow in level.arrows) {
+        if (arrow.bends.isEmpty) continue;
+        expect(arrow.length, greaterThanOrEqualTo(2),
+            reason: 'level ${level.id} arrow ${arrow.id} turns at its tip');
+      }
+    }
+  });
+
   test('catalog levels are solvable and never overlap', () {
     for (final level in LevelCatalog.all) {
       final seen = <(int, int)>{};
