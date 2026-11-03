@@ -1,0 +1,3 @@
+# app-ads.txt for Arrows (Tiny Genius Hub)
+# Spec: https://iabtechlab.com/ads-txt/
+google.com, pub-9350608203842553, DIRECT, f08c47fec0942fa0

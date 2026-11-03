@@ -22,7 +22,7 @@ const _materialFonts =
 
 /// Same sizes the raw captures use, so these drop straight into the store.
 const _devices = <String, (Size, double)>{
-  'ios': (Size(1290, 2796), 3),
+  'ios': (Size(1206, 2622), 3),
   'ipad': (Size(2048, 2732), 2),
   'android': (Size(1080, 2400), 3),
   'android_tablet': (Size(1600, 2560), 2),
