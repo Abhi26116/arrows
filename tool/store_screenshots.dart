@@ -10,6 +10,7 @@
 // Output lands in store/screenshots/{ios,ipad,android}/. 01-06 are the listing
 // shots; iap_review_shop is the separate one both stores ask for when they
 // review the in-app purchases.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:arrows_game/data/progress_store.dart';
@@ -23,6 +24,7 @@ import 'package:arrows_game/screens/shop_screen.dart';
 import 'package:arrows_game/services/iap_service.dart';
 import 'package:arrows_game/screens/themes_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
+import 'package:arrows_game/theme/theme_controller.dart';
 import 'package:arrows_game/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +48,14 @@ const _devices = <String, (Size, double)>{
   'android_tablet': (Size(1600, 2560), 2),
 };
 
+/// `days` ago, in the key format [AppStore] writes.
+String _dateKey(int days) {
+  final n = DateTime.now().subtract(Duration(days: days));
+  return '${n.year.toString().padLeft(4, '0')}-'
+      '${n.month.toString().padLeft(2, '0')}-'
+      '${n.day.toString().padLeft(2, '0')}';
+}
+
 Future<void> _loadFont(String family, String path) async {
   final loader = FontLoader(family)
     ..addFont(Future.value(File(path).readAsBytesSync().buffer.asByteData()));
@@ -67,8 +77,21 @@ void main() {
       'settings_haptics': false,
       'max_unlocked_level': 34,
       'settings_show_grid': false,
+      // Without this the home screen's first frame pushes the onboarding
+      // language picker over itself, and the "02_home" capture is a list of
+      // languages rather than the game.
+      'settings_chose_language': true,
+      'theme_id': 'midnight',
+      // A streak worth showing on the home screen's stat row.
+      'daily_date': _dateKey(0),
+      'best_daily': 3,
+      'daily_history': jsonEncode([
+        for (var i = 0; i < 14; i++)
+          {'date': _dateKey(i), 'stars': i % 4 == 0 ? 2 : 3},
+      ]),
       for (var i = 1; i <= 33; i++) 'level_stars_$i': i % 3 == 0 ? 2 : 3,
     });
+    await ThemeController.instance.load();
     await AppStore.instance.init();
     await _loadFont('DMSans', 'assets/fonts/DMSans.ttf');
     await _loadFont(
@@ -103,6 +126,27 @@ void main() {
       );
     }
 
+    /// Same capture, rendered under a different palette. Each theme owns a
+    /// signature neon colour, and a listing that only ever shows one of them
+    /// throws away the game's best asset.
+    Future<void> themedShot(
+      WidgetTester tester,
+      String themeId,
+      Widget page,
+      String name,
+    ) async {
+      final owned = AppStore.instance.themePackOwned;
+      // setTheme refuses the premium palettes unless the pack is owned, and
+      // for a screenshot it is the colour that matters, not the entitlement.
+      await AppStore.instance.setThemePackOwned(true);
+      await ThemeController.instance.setTheme(themeId);
+      addTearDown(() async {
+        await AppStore.instance.setThemePackOwned(owned);
+        await ThemeController.instance.setTheme('midnight');
+      });
+      await shot(tester, page, name);
+    }
+
     group(platform, () {
       testWidgets('01 hard board', (t) async {
         await shot(
@@ -110,9 +154,23 @@ void main() {
       });
       testWidgets('02 home', (t) => shot(t, const HomeScreen(), '02_home'));
       testWidgets('03 expert board', (t) async {
-        await shot(t, GameScreen(customLevel: LevelCatalog.byId(78)),
-            '03_expert_board');
+        // Aurora's violet, so the carousel does not run pink all the way
+        // down — this is the shot that sits third.
+        await themedShot(t, 'aurora',
+            GameScreen(customLevel: LevelCatalog.byId(78)), '03_expert_board');
       });
+      // The three crops the themes panel is built from: one board, three
+      // signature colours, as far apart in hue as the palettes go.
+      for (final (id, level) in const [
+        ('ocean', 30),
+        ('ember', 30),
+        ('solar', 30),
+      ]) {
+        testWidgets('theme $id', (t) async {
+          await themedShot(t, id, GameScreen(customLevel: LevelCatalog.byId(level)),
+              'theme_$id');
+        });
+      }
       testWidgets('04 levels', (t) async {
         await shot(t, const LevelSelectScreen(), '04_levels');
       });

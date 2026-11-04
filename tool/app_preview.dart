@@ -88,6 +88,36 @@ void main() {
       for (var i = 1; i <= 33; i++) 'level_stars_$i': i % 3 == 0 ? 2 : 3,
     });
     await AppStore.instance.init();
+
+    // audioplayers has no implementation under `flutter test`, and the game
+    // reaches SoundService the moment an arrow is tapped. Its AudioPlayer is
+    // built in a field initialiser, so switching sound off is not enough —
+    // the channels are hit as soon as the singleton exists, and the
+    // MissingPluginException lands on the test rather than on the game.
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    for (final channel in const [
+      MethodChannel('xyz.luan/audioplayers'),
+      MethodChannel('xyz.luan/audioplayers.global'),
+    ]) {
+      messenger.setMockMethodCallHandler(channel, (call) async => null);
+    }
+    messenger.setMockStreamHandler(
+      const EventChannel('xyz.luan/audioplayers.global/events'),
+      MockStreamHandler.inline(onListen: (arguments, events) {}),
+    );
+    // Each AudioPlayer also opens an event channel named after its own
+    // randomly generated id, which cannot be mocked ahead of time. Nothing
+    // here listens to those events, and the player is already standing in for
+    // a plugin that is not present, so drop the one exception it raises
+    // rather than let it fail a recording that has otherwise finished.
+    final reportError = FlutterError.onError;
+    FlutterError.onError = (details) {
+      if (details.exception is MissingPluginException) return;
+      reportError?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = reportError);
+
     await _loadFont('DMSans', 'assets/fonts/DMSans.ttf');
     await _loadFont(
         'MaterialIcons', '$_materialFonts/MaterialIcons-Regular.otf');
