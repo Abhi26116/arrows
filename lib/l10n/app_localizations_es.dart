@@ -1,5 +1,5 @@
+// ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -125,7 +125,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gameOverTitle => 'Sin corazones';
 
   @override
-  String get gameOverBody => 'El tablero se reinicia. Mira un anuncio corto para conseguir otro corazón, o vuelve a empezar.';
+  String get gameOverBody =>
+      'El tablero se reinicia. Mira un anuncio corto para conseguir otro corazón, o vuelve a empezar.';
 
   @override
   String get gameExtraHeart => 'Otro corazón';
@@ -140,7 +141,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gameRestartTitle => '¿Reiniciar el tablero?';
 
   @override
-  String get gameRestartBody => 'Todas las flechas vuelven y tus corazones se reinician.';
+  String get gameRestartBody =>
+      'Todas las flechas vuelven y tus corazones se reinician.';
 
   @override
   String get gameRestart => 'Reiniciar';
@@ -164,7 +166,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gameNoAdReady => 'No hay anuncio disponible — inténtalo de nuevo.';
 
   @override
-  String get gameHintAdHint => 'Mira un anuncio corto en la Tienda para conseguir pistas, o inténtalo de nuevo.';
+  String get gameHintAdHint =>
+      'Mira un anuncio corto en la Tienda para conseguir pistas, o inténtalo de nuevo.';
 
   @override
   String get howToTitle => 'Cómo jugar';
@@ -173,31 +176,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get howToStep1Title => 'Toca una flecha';
 
   @override
-  String get howToStep1Body => 'Sale volando en la dirección a la que apunta: arriba, abajo, izquierda o derecha.';
+  String get howToStep1Body =>
+      'Sale volando en la dirección a la que apunta: arriba, abajo, izquierda o derecha.';
 
   @override
   String get howToStep2Title => 'Camino libre = fuera';
 
   @override
-  String get howToStep2Body => 'Si nada le corta el camino recto desde la punta hasta el borde, la flecha entera se desliza fuera, con curvas y todo.';
+  String get howToStep2Body =>
+      'Si nada le corta el camino recto desde la punta hasta el borde, la flecha entera se desliza fuera, con curvas y todo.';
 
   @override
   String get howToStep3Title => 'Los cuerpos pueden doblar';
 
   @override
-  String get howToStep3Body => 'Una flecha bloquea todas las casillas que ocupa, de la punta a la cola, y algunos cuerpos giran en esquina. Mira la forma entera antes de tocar.';
+  String get howToStep3Body =>
+      'Una flecha bloquea todas las casillas que ocupa, de la punta a la cola, y algunos cuerpos giran en esquina. Mira la forma entera antes de tocar.';
 
   @override
   String get howToStep4Title => 'Tres corazones';
 
   @override
-  String get howToStep4Body => 'Un toque bloqueado cuesta un corazón. Si pierdes los tres, el tablero se reinicia — y los corazones que te queden son tus estrellas.';
+  String get howToStep4Body =>
+      'Un toque bloqueado cuesta un corazón. Si pierdes los tres, el tablero se reinicia — y los corazones que te queden son tus estrellas.';
 
   @override
   String get howToStep5Title => 'Vacía el tablero';
 
   @override
-  String get howToStep5Body => 'Gana dejando el tablero vacío. Toca el botón de cuadrícula para ver las casillas, o Pista si te atascas.';
+  String get howToStep5Body =>
+      'Gana dejando el tablero vacío. Toca el botón de cuadrícula para ver las casillas, o Pista si te atascas.';
 
   @override
   String get howToDone => 'Listo';
@@ -257,7 +265,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsResetTitle => '¿Reiniciar el progreso?';
 
   @override
-  String get settingsResetBody => 'Los niveles se bloquean otra vez y las estrellas vuelven a cero. Las compras, los temas y tu racha diaria se mantienen.';
+  String get settingsResetBody =>
+      'Los niveles se bloquean otra vez y las estrellas vuelven a cero. Las compras, los temas y tu racha diaria se mantienen.';
 
   @override
   String get settingsResetConfirm => 'Reiniciar';
@@ -305,13 +314,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get shopRemoveAds => 'Quitar anuncios';
 
   @override
-  String get shopRemoveAdsBody => 'Sin banners ni anuncios entre partidas. Las pistas con recompensa siguen siendo gratis.';
+  String get shopRemoveAdsBody =>
+      'Sin banners ni anuncios entre partidas. Las pistas con recompensa siguen siendo gratis.';
 
   @override
   String get shopThemePack => 'Pack de temas';
 
   @override
-  String get shopThemePackBody => 'Desbloquea los temas Aurora, Noir y Solar para siempre.';
+  String get shopThemePackBody =>
+      'Desbloquea los temas Aurora, Noir y Solar para siempre.';
 
   @override
   String get shopBonusHint => 'Pista extra';
@@ -351,13 +362,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get shopRestore => 'Restaurar compras';
 
   @override
-  String get shopRestoreNote => 'Las compras están ligadas a tu cuenta de la tienda y puedes restaurarlas en cualquier dispositivo donde inicies sesión.';
+  String get shopRestoreNote =>
+      'Las compras están ligadas a tu cuenta de la tienda y puedes restaurarlas en cualquier dispositivo donde inicies sesión.';
 
   @override
   String get shopHintAdded => 'Pista extra añadida';
 
   @override
-  String get shopAdNotReady => 'Anuncio no disponible — inténtalo en un momento.';
+  String get shopAdNotReady =>
+      'Anuncio no disponible — inténtalo en un momento.';
 
   @override
   String get dailyTitle => 'Diario';
@@ -389,7 +402,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get languageOnboardingTitle => 'Elige tu idioma';
 
   @override
-  String get languageOnboardingBody => 'Puedes cambiarlo cuando quieras en Ajustes.';
+  String get languageOnboardingBody =>
+      'Puedes cambiarlo cuando quieras en Ajustes.';
 
   @override
   String get languageContinue => 'Continuar';
@@ -398,7 +412,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reviewTitle => '¿Te gusta Arrows?';
 
   @override
-  String get reviewBody => 'Una valoración ayuda a que otros encuentren el juego. Solo lleva un momento.';
+  String get reviewBody =>
+      'Una valoración ayuda a que otros encuentren el juego. Solo lleva un momento.';
 
   @override
   String get reviewRate => 'Valorar';

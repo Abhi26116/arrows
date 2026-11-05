@@ -4,7 +4,9 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.4
+  # Dart 3.10 is the floor for in_app_purchase 3.3, and the ceiling this Mac
+  # can run: Dart 3.11 onwards is built for macOS 14 and will not start on 13.
+  sdk: ^3.10.0
 
 dependencies:
   flutter:
@@ -29,7 +31,10 @@ dependencies:
   # app runs fully offline (leaderboard is local). Re-add when Xcode is upgraded;
   # see EXTRAS.md. Pin: firebase_core 3.3.0 / firebase_auth 5.1.4 / cloud_firestore 5.2.1.
   google_mobile_ads: 4.0.0
-  in_app_purchase: ^3.2.0
+  # 3.3 is the first release on in_app_purchase_android 0.5, which ships
+  # Google Play Billing Library 8.0.0. Play has rejected anything below 8
+  # since 2026-08-31.
+  in_app_purchase: ^3.3.0
   app_tracking_transparency: ^2.0.7
 
 dev_dependencies:

@@ -35,7 +35,10 @@ android {
         applicationId = "com.arrowsgame.arrows_game"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        // Was a hand-pinned 23 until Flutter's min_sdk_version_migration
+        // rewrote it on the 3.38 upgrade. That resolves to 24, so Android 6.0
+        // is dropped — not a choice: the 3.38 engine does not run below 24.
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName

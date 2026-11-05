@@ -1,5 +1,5 @@
+// ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -125,7 +125,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameOverTitle => 'दिल खत्म';
 
   @override
-  String get gameOverBody => 'बोर्ड रीसेट हो जाएगा। एक और दिल के लिए छोटा विज्ञापन देखें, या शुरू से कोशिश करें।';
+  String get gameOverBody =>
+      'बोर्ड रीसेट हो जाएगा। एक और दिल के लिए छोटा विज्ञापन देखें, या शुरू से कोशिश करें।';
 
   @override
   String get gameExtraHeart => 'एक और दिल';
@@ -140,7 +141,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameRestartTitle => 'बोर्ड दोबारा शुरू करें?';
 
   @override
-  String get gameRestartBody => 'हर तीर वापस आ जाएगा और आपके दिल रीसेट हो जाएँगे।';
+  String get gameRestartBody =>
+      'हर तीर वापस आ जाएगा और आपके दिल रीसेट हो जाएँगे।';
 
   @override
   String get gameRestart => 'दोबारा';
@@ -164,7 +166,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameNoAdReady => 'कोई विज्ञापन तैयार नहीं — फिर कोशिश करें।';
 
   @override
-  String get gameHintAdHint => 'बोनस संकेत के लिए शॉप में छोटा विज्ञापन देखें, या फिर कोशिश करें।';
+  String get gameHintAdHint =>
+      'बोनस संकेत के लिए शॉप में छोटा विज्ञापन देखें, या फिर कोशिश करें।';
 
   @override
   String get howToTitle => 'कैसे खेलें';
@@ -173,31 +176,36 @@ class AppLocalizationsHi extends AppLocalizations {
   String get howToStep1Title => 'तीर पर टैप करें';
 
   @override
-  String get howToStep1Body => 'वह जिस दिशा में इशारा करता है उधर उड़ जाता है — ऊपर, नीचे, बाएँ या दाएँ।';
+  String get howToStep1Body =>
+      'वह जिस दिशा में इशारा करता है उधर उड़ जाता है — ऊपर, नीचे, बाएँ या दाएँ।';
 
   @override
   String get howToStep2Title => 'रास्ता खाली = तीर गया';
 
   @override
-  String get howToStep2Body => 'अगर उसके सिरे से किनारे तक सीधा रास्ता खाली है, तो पूरा तीर बाहर निकल जाता है — मोड़ों के साथ भी।';
+  String get howToStep2Body =>
+      'अगर उसके सिरे से किनारे तक सीधा रास्ता खाली है, तो पूरा तीर बाहर निकल जाता है — मोड़ों के साथ भी।';
 
   @override
   String get howToStep3Title => 'तीर मुड़ भी सकते हैं';
 
   @override
-  String get howToStep3Body => 'तीर अपनी पूरी लंबाई की हर सेल रोकता है, सिरे से पूँछ तक, और कुछ तीर कोने पर मुड़ते हैं। टैप करने से पहले पूरी शक्ल देखें।';
+  String get howToStep3Body =>
+      'तीर अपनी पूरी लंबाई की हर सेल रोकता है, सिरे से पूँछ तक, और कुछ तीर कोने पर मुड़ते हैं। टैप करने से पहले पूरी शक्ल देखें।';
 
   @override
   String get howToStep4Title => 'तीन दिल';
 
   @override
-  String get howToStep4Body => 'रुका हुआ टैप एक दिल ले जाता है। तीनों गए तो बोर्ड रीसेट — और बचे हुए दिल ही आपके सितारे बनते हैं।';
+  String get howToStep4Body =>
+      'रुका हुआ टैप एक दिल ले जाता है। तीनों गए तो बोर्ड रीसेट — और बचे हुए दिल ही आपके सितारे बनते हैं।';
 
   @override
   String get howToStep5Title => 'सारे हटा दें';
 
   @override
-  String get howToStep5Body => 'बोर्ड खाली करके जीतें। सेल की लाइनें देखने के लिए ग्रिड बटन दबाएँ, और अटक जाएँ तो संकेत लें।';
+  String get howToStep5Body =>
+      'बोर्ड खाली करके जीतें। सेल की लाइनें देखने के लिए ग्रिड बटन दबाएँ, और अटक जाएँ तो संकेत लें।';
 
   @override
   String get howToDone => 'हो गया';
@@ -257,7 +265,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsResetTitle => 'प्रगति रीसेट करें?';
 
   @override
-  String get settingsResetBody => 'लेवल फिर से लॉक हो जाएँगे और सितारे शून्य हो जाएँगे। खरीदारी, थीम और आपकी डेली स्ट्रीक बनी रहेगी।';
+  String get settingsResetBody =>
+      'लेवल फिर से लॉक हो जाएँगे और सितारे शून्य हो जाएँगे। खरीदारी, थीम और आपकी डेली स्ट्रीक बनी रहेगी।';
 
   @override
   String get settingsResetConfirm => 'रीसेट';
@@ -305,13 +314,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shopRemoveAds => 'विज्ञापन हटाएँ';
 
   @override
-  String get shopRemoveAdsBody => 'कोई बैनर या बीच का विज्ञापन नहीं। इनाम वाले संकेत मुफ़्त ही रहेंगे।';
+  String get shopRemoveAdsBody =>
+      'कोई बैनर या बीच का विज्ञापन नहीं। इनाम वाले संकेत मुफ़्त ही रहेंगे।';
 
   @override
   String get shopThemePack => 'थीम पैक';
 
   @override
-  String get shopThemePackBody => 'ऑरोरा, नॉयर और सोलर थीम हमेशा के लिए अनलॉक करें।';
+  String get shopThemePackBody =>
+      'ऑरोरा, नॉयर और सोलर थीम हमेशा के लिए अनलॉक करें।';
 
   @override
   String get shopBonusHint => 'बोनस संकेत';
@@ -351,13 +362,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shopRestore => 'खरीदारी वापस लाएँ';
 
   @override
-  String get shopRestoreNote => 'खरीदारी आपके स्टोर खाते से जुड़ी होती है और जिस भी डिवाइस पर आप साइन इन करें वहाँ वापस लाई जा सकती है।';
+  String get shopRestoreNote =>
+      'खरीदारी आपके स्टोर खाते से जुड़ी होती है और जिस भी डिवाइस पर आप साइन इन करें वहाँ वापस लाई जा सकती है।';
 
   @override
   String get shopHintAdded => 'बोनस संकेत जुड़ गया';
 
   @override
-  String get shopAdNotReady => 'विज्ञापन तैयार नहीं — थोड़ी देर में कोशिश करें।';
+  String get shopAdNotReady =>
+      'विज्ञापन तैयार नहीं — थोड़ी देर में कोशिश करें।';
 
   @override
   String get dailyTitle => 'डेली';
@@ -389,7 +402,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get languageOnboardingTitle => 'अपनी भाषा चुनें';
 
   @override
-  String get languageOnboardingBody => 'इसे आप कभी भी सेटिंग्स में बदल सकते हैं।';
+  String get languageOnboardingBody =>
+      'इसे आप कभी भी सेटिंग्स में बदल सकते हैं।';
 
   @override
   String get languageContinue => 'आगे बढ़ें';
@@ -398,7 +412,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get reviewTitle => 'Arrows पसंद आ रहा है?';
 
   @override
-  String get reviewBody => 'आपकी रेटिंग से दूसरों को यह गेम मिलने में मदद मिलती है। बस एक पल लगेगा।';
+  String get reviewBody =>
+      'आपकी रेटिंग से दूसरों को यह गेम मिलने में मदद मिलती है। बस एक पल लगेगा।';
 
   @override
   String get reviewRate => 'रेटिंग दें';

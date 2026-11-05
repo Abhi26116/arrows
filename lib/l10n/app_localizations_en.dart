@@ -1,5 +1,5 @@
+// ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -125,7 +125,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameOverTitle => 'Out of hearts';
 
   @override
-  String get gameOverBody => 'The board resets. Watch a short ad for one more heart, or try again from the start.';
+  String get gameOverBody =>
+      'The board resets. Watch a short ad for one more heart, or try again from the start.';
 
   @override
   String get gameExtraHeart => 'Extra heart';
@@ -164,7 +165,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameNoAdReady => 'No ad ready — try again.';
 
   @override
-  String get gameHintAdHint => 'Watch a short ad in Shop for bonus hints, or try again.';
+  String get gameHintAdHint =>
+      'Watch a short ad in Shop for bonus hints, or try again.';
 
   @override
   String get howToTitle => 'How to Play';
@@ -173,31 +175,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get howToStep1Title => 'Tap an arrow';
 
   @override
-  String get howToStep1Body => 'It flies in the direction it points — up, down, left, or right.';
+  String get howToStep1Body =>
+      'It flies in the direction it points — up, down, left, or right.';
 
   @override
   String get howToStep2Title => 'Clear path = gone';
 
   @override
-  String get howToStep2Body => 'If nothing sits on the straight path from its head to the edge, the whole arrow slides off — bends and all.';
+  String get howToStep2Body =>
+      'If nothing sits on the straight path from its head to the edge, the whole arrow slides off — bends and all.';
 
   @override
   String get howToStep3Title => 'Bodies can bend';
 
   @override
-  String get howToStep3Body => 'An arrow blocks every cell it covers, head to tail, and some bodies turn corners. Follow the whole shape before you tap.';
+  String get howToStep3Body =>
+      'An arrow blocks every cell it covers, head to tail, and some bodies turn corners. Follow the whole shape before you tap.';
 
   @override
   String get howToStep4Title => 'Three hearts';
 
   @override
-  String get howToStep4Body => 'A blocked tap costs a heart. Lose all three and the board resets — hearts left become your stars.';
+  String get howToStep4Body =>
+      'A blocked tap costs a heart. Lose all three and the board resets — hearts left become your stars.';
 
   @override
   String get howToStep5Title => 'Clear them all';
 
   @override
-  String get howToStep5Body => 'Empty the board to win. Tap the grid button to show cell lines, or Hint when you are stuck.';
+  String get howToStep5Body =>
+      'Empty the board to win. Tap the grid button to show cell lines, or Hint when you are stuck.';
 
   @override
   String get howToDone => 'Done';
@@ -257,7 +264,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsResetTitle => 'Reset progress?';
 
   @override
-  String get settingsResetBody => 'Levels lock again and stars go back to zero. Purchases, themes, and your daily streak are kept.';
+  String get settingsResetBody =>
+      'Levels lock again and stars go back to zero. Purchases, themes, and your daily streak are kept.';
 
   @override
   String get settingsResetConfirm => 'Reset';
@@ -305,13 +313,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopRemoveAds => 'Remove Ads';
 
   @override
-  String get shopRemoveAdsBody => 'No banners or interstitials. Rewarded hints stay free.';
+  String get shopRemoveAdsBody =>
+      'No banners or interstitials. Rewarded hints stay free.';
 
   @override
   String get shopThemePack => 'Theme Pack';
 
   @override
-  String get shopThemePackBody => 'Unlock Aurora, Noir, and Solar themes forever.';
+  String get shopThemePackBody =>
+      'Unlock Aurora, Noir, and Solar themes forever.';
 
   @override
   String get shopBonusHint => 'Bonus Hint';
@@ -351,7 +361,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopRestore => 'Restore purchases';
 
   @override
-  String get shopRestoreNote => 'Purchases are tied to your store account and can be restored on any device you sign in to.';
+  String get shopRestoreNote =>
+      'Purchases are tied to your store account and can be restored on any device you sign in to.';
 
   @override
   String get shopHintAdded => 'Bonus hint added';
@@ -389,7 +400,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageOnboardingTitle => 'Choose your language';
 
   @override
-  String get languageOnboardingBody => 'You can change this any time in Settings.';
+  String get languageOnboardingBody =>
+      'You can change this any time in Settings.';
 
   @override
   String get languageContinue => 'Continue';
@@ -398,7 +410,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewTitle => 'Enjoying Arrows?';
 
   @override
-  String get reviewBody => 'A rating helps other people find the game. It takes a moment.';
+  String get reviewBody =>
+      'A rating helps other people find the game. It takes a moment.';
 
   @override
   String get reviewRate => 'Rate it';

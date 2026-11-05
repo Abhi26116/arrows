@@ -1,5 +1,5 @@
+// ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -125,7 +125,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get gameOverTitle => 'Hati habis';
 
   @override
-  String get gameOverBody => 'Papan akan diulang. Tonton iklan singkat untuk satu hati lagi, atau mulai dari awal.';
+  String get gameOverBody =>
+      'Papan akan diulang. Tonton iklan singkat untuk satu hati lagi, atau mulai dari awal.';
 
   @override
   String get gameExtraHeart => 'Hati tambahan';
@@ -140,7 +141,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get gameRestartTitle => 'Ulangi papan ini?';
 
   @override
-  String get gameRestartBody => 'Semua panah kembali dan hati kamu diatur ulang.';
+  String get gameRestartBody =>
+      'Semua panah kembali dan hati kamu diatur ulang.';
 
   @override
   String get gameRestart => 'Ulangi';
@@ -164,7 +166,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get gameNoAdReady => 'Tidak ada iklan siap — coba lagi.';
 
   @override
-  String get gameHintAdHint => 'Tonton iklan singkat di Toko untuk petunjuk tambahan, atau coba lagi.';
+  String get gameHintAdHint =>
+      'Tonton iklan singkat di Toko untuk petunjuk tambahan, atau coba lagi.';
 
   @override
   String get howToTitle => 'Cara main';
@@ -173,31 +176,36 @@ class AppLocalizationsId extends AppLocalizations {
   String get howToStep1Title => 'Ketuk sebuah panah';
 
   @override
-  String get howToStep1Body => 'Panah melesat ke arah yang ditunjuknya — atas, bawah, kiri, atau kanan.';
+  String get howToStep1Body =>
+      'Panah melesat ke arah yang ditunjuknya — atas, bawah, kiri, atau kanan.';
 
   @override
   String get howToStep2Title => 'Jalan kosong = lepas';
 
   @override
-  String get howToStep2Body => 'Kalau jalur lurus dari ujungnya sampai tepi kosong, seluruh panah meluncur keluar — berikut semua tikungannya.';
+  String get howToStep2Body =>
+      'Kalau jalur lurus dari ujungnya sampai tepi kosong, seluruh panah meluncur keluar — berikut semua tikungannya.';
 
   @override
   String get howToStep3Title => 'Badan panah bisa berbelok';
 
   @override
-  String get howToStep3Body => 'Panah menghalangi setiap kotak yang ditempatinya, dari ujung sampai ekor, dan sebagian badannya berbelok. Ikuti seluruh bentuknya sebelum mengetuk.';
+  String get howToStep3Body =>
+      'Panah menghalangi setiap kotak yang ditempatinya, dari ujung sampai ekor, dan sebagian badannya berbelok. Ikuti seluruh bentuknya sebelum mengetuk.';
 
   @override
   String get howToStep4Title => 'Tiga hati';
 
   @override
-  String get howToStep4Body => 'Ketukan yang terhalang memakan satu hati. Habis ketiganya, papan diulang — dan sisa hati jadi bintang kamu.';
+  String get howToStep4Body =>
+      'Ketukan yang terhalang memakan satu hati. Habis ketiganya, papan diulang — dan sisa hati jadi bintang kamu.';
 
   @override
   String get howToStep5Title => 'Habiskan semuanya';
 
   @override
-  String get howToStep5Body => 'Menang dengan mengosongkan papan. Ketuk tombol kisi untuk melihat garis kotak, atau Petunjuk kalau buntu.';
+  String get howToStep5Body =>
+      'Menang dengan mengosongkan papan. Ketuk tombol kisi untuk melihat garis kotak, atau Petunjuk kalau buntu.';
 
   @override
   String get howToDone => 'Selesai';
@@ -257,7 +265,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsResetTitle => 'Atur ulang progres?';
 
   @override
-  String get settingsResetBody => 'Level terkunci lagi dan bintang kembali nol. Pembelian, tema, dan rentetan harian kamu tetap tersimpan.';
+  String get settingsResetBody =>
+      'Level terkunci lagi dan bintang kembali nol. Pembelian, tema, dan rentetan harian kamu tetap tersimpan.';
 
   @override
   String get settingsResetConfirm => 'Atur ulang';
@@ -305,13 +314,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get shopRemoveAds => 'Hapus iklan';
 
   @override
-  String get shopRemoveAdsBody => 'Tanpa banner atau iklan sela. Petunjuk berhadiah tetap gratis.';
+  String get shopRemoveAdsBody =>
+      'Tanpa banner atau iklan sela. Petunjuk berhadiah tetap gratis.';
 
   @override
   String get shopThemePack => 'Paket tema';
 
   @override
-  String get shopThemePackBody => 'Buka tema Aurora, Noir, dan Solar selamanya.';
+  String get shopThemePackBody =>
+      'Buka tema Aurora, Noir, dan Solar selamanya.';
 
   @override
   String get shopBonusHint => 'Petunjuk tambahan';
@@ -351,7 +362,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get shopRestore => 'Pulihkan pembelian';
 
   @override
-  String get shopRestoreNote => 'Pembelian terhubung ke akun toko kamu dan bisa dipulihkan di perangkat mana pun tempat kamu masuk.';
+  String get shopRestoreNote =>
+      'Pembelian terhubung ke akun toko kamu dan bisa dipulihkan di perangkat mana pun tempat kamu masuk.';
 
   @override
   String get shopHintAdded => 'Petunjuk tambahan ditambahkan';
@@ -389,7 +401,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get languageOnboardingTitle => 'Pilih bahasa kamu';
 
   @override
-  String get languageOnboardingBody => 'Kamu bisa mengubahnya kapan saja di Pengaturan.';
+  String get languageOnboardingBody =>
+      'Kamu bisa mengubahnya kapan saja di Pengaturan.';
 
   @override
   String get languageContinue => 'Lanjut';
@@ -398,7 +411,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get reviewTitle => 'Suka main Arrows?';
 
   @override
-  String get reviewBody => 'Rating membantu orang lain menemukan game ini. Cuma sebentar kok.';
+  String get reviewBody =>
+      'Rating membantu orang lain menemukan game ini. Cuma sebentar kok.';
 
   @override
   String get reviewRate => 'Beri rating';
