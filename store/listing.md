@@ -58,6 +58,16 @@ you a while. There is no timer and no pressure — just you, the board, and the
 order you choose.
 ```
 
+## What's New (1.0.1)
+
+```
+The board now sits in the middle of the screen, with even space above and
+below it. On iPad in landscape it uses the full height of the screen.
+
+Arrows now opens in your phone's language straight away. You can switch to
+another one any time in Settings > Language.
+```
+
 ## What's New (first release)
 
 ```
