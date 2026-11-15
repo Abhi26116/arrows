@@ -806,24 +806,6 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get languageSystem;
 
-  /// No description provided for @languageOnboardingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your language'**
-  String get languageOnboardingTitle;
-
-  /// No description provided for @languageOnboardingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'You can change this any time in Settings.'**
-  String get languageOnboardingBody;
-
-  /// No description provided for @languageContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get languageContinue;
-
   /// No description provided for @reviewTitle.
   ///
   /// In en, this message translates to:

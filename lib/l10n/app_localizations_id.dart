@@ -398,16 +398,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get languageSystem => 'Bahasa sistem';
 
   @override
-  String get languageOnboardingTitle => 'Pilih bahasa kamu';
-
-  @override
-  String get languageOnboardingBody =>
-      'Kamu bisa mengubahnya kapan saja di Pengaturan.';
-
-  @override
-  String get languageContinue => 'Lanjut';
-
-  @override
   String get reviewTitle => 'Suka main Arrows?';
 
   @override

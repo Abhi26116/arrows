@@ -77,10 +77,6 @@ void main() {
       'settings_haptics': false,
       'max_unlocked_level': 34,
       'settings_show_grid': false,
-      // Without this the home screen's first frame pushes the onboarding
-      // language picker over itself, and the "02_home" capture is a list of
-      // languages rather than the game.
-      'settings_chose_language': true,
       'theme_id': 'midnight',
       // A streak worth showing on the home screen's stat row.
       'daily_date': _dateKey(0),

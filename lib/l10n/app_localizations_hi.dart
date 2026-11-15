@@ -399,16 +399,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get languageSystem => 'फ़ोन की भाषा';
 
   @override
-  String get languageOnboardingTitle => 'अपनी भाषा चुनें';
-
-  @override
-  String get languageOnboardingBody =>
-      'इसे आप कभी भी सेटिंग्स में बदल सकते हैं।';
-
-  @override
-  String get languageContinue => 'आगे बढ़ें';
-
-  @override
   String get reviewTitle => 'Arrows पसंद आ रहा है?';
 
   @override

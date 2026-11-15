@@ -399,16 +399,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get languageSystem => 'Idioma do sistema';
 
   @override
-  String get languageOnboardingTitle => 'Escolha seu idioma';
-
-  @override
-  String get languageOnboardingBody =>
-      'Você pode mudar isso quando quiser em Ajustes.';
-
-  @override
-  String get languageContinue => 'Continuar';
-
-  @override
   String get reviewTitle => 'Curtindo o Arrows?';
 
   @override

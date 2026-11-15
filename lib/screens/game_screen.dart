@@ -45,12 +45,41 @@ const double _boardGutter = 4;
 /// Height the floating hint and grid buttons need in the bottom-right.
 const double _buttonBand = 120;
 
-/// Most empty space allowed above the board. A square board leaves slack on a
-/// tall screen, and splitting that slack evenly drops half of it under the
-/// progress bar as a dead band while the buttons stay pinned to the bottom.
-/// Capping the top share keeps the board near the header and lets the rest
-/// fall where the buttons already are.
-const double _topSlackCap = 32;
+/// Width the same buttons take in from the right edge — their 16pt margin,
+/// the button itself, and a little air before the board.
+const double _buttonColumn = 16 + 48 + 8;
+
+/// Where the board sits in the space under the progress bar: how big it is,
+/// and how far down that space it starts.
+///
+/// The board is centred in that space. The one thing allowed to move it off
+/// centre is the pair of floating buttons in the bottom-right corner: a board
+/// that would run into them is lifted just far enough to clear them, and no
+/// further. Shrinking it instead would cost every cell on the board for the
+/// sake of the empty space around it.
+@visibleForTesting
+({double side, double top}) placeBoard(Size space) {
+  // The largest square that clears the buttons by ending above them — what a
+  // phone has room for, since its board is as wide as the screen.
+  final above = math.min(
+    space.width - _boardGutter * 2,
+    space.height - _boardGutter - _buttonBand,
+  );
+  // The largest that clears them by staying out of their column, using the
+  // full height instead — what a landscape tablet has room for.
+  final beside = math.min(
+    space.height - _boardGutter * 2,
+    space.width - _buttonColumn * 2,
+  );
+  final side = math.max(0.0, math.max(above, beside));
+  final reachesButtons = side > space.width - _buttonColumn * 2;
+  final lowest =
+      space.height - side - (reachesButtons ? _buttonBand : _boardGutter);
+  final top = ((space.height - side) / 2)
+      .clamp(_boardGutter, math.max(_boardGutter, lowest))
+      .toDouble();
+  return (side: side, top: top);
+}
 
 class _GameScreenState extends State<GameScreen> {
   late PlaySession _session;
@@ -691,41 +720,17 @@ class _GameScreenState extends State<GameScreen> {
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      // A square board never uses the full height of this
-                      // column, and the leftover sits under it — which is
-                      // where the floating buttons live. So only pay for the
-                      // button band with padding on the short screens where
-                      // that leftover does not already clear them. A fixed
-                      // reservation would cost a tall phone board size it
-                      // did not need to give up.
-                      final side = constraints.maxWidth - _boardGutter * 2;
-                      // How much bottom padding the buttons still need once
-                      // that leftover is counted; at or below the gutter they
-                      // are already clear.
-                      final needed = 2 * _buttonBand -
-                          constraints.maxHeight +
-                          _boardGutter +
-                          side;
-                      final bottom = needed <= _boardGutter
-                          ? _boardGutter
-                          : math.min(needed, constraints.maxHeight / 2);
-                      // Whatever height is left once the buttons are paid for.
-                      // The board is the smaller of that and its own width, so
-                      // a short screen still hands it every point there is.
-                      final inner = math.max(
-                          0.0, constraints.maxHeight - _boardGutter - bottom);
-                      final box = math.min(side, inner);
-                      final top = _boardGutter +
-                          math.min((inner - box) / 2, _topSlackCap);
+                      final board = placeBoard(constraints.biggest);
                       return Stack(
                         children: [
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(
-                                _boardGutter, top, _boardGutter, bottom),
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: SizedBox(
-                                height: box,
+                          Positioned(
+                            left: _boardGutter,
+                            right: _boardGutter,
+                            top: board.top,
+                            height: board.side,
+                            child: Center(
+                              child: SizedBox.square(
+                                dimension: board.side,
                                 child: GameBoard(
                                   session: _session,
                                   onTap: _onTap,

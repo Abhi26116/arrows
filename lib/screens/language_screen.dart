@@ -21,14 +21,10 @@ const languages = <({String? code, String name})>[
   (code: 'id', name: 'Bahasa Indonesia'),
 ];
 
-/// Language picker, used both as a Settings page and as the first thing an
-/// onboarding player sees.
+/// Language picker, opened from Settings. A new install never sees it: the
+/// app starts in the phone's language, and this is only for changing that.
 class LanguageScreen extends StatelessWidget {
-  const LanguageScreen({super.key, this.onboarding = false});
-
-  /// In onboarding there is nothing to go back to, and choosing moves the
-  /// player forward rather than returning them to Settings.
-  final bool onboarding;
+  const LanguageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,18 +36,7 @@ class LanguageScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              AppHeader(
-                title: onboarding ? l.languageOnboardingTitle : l.languageTitle,
-                showBack: !onboarding,
-              ),
-              if (onboarding)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                  child: Text(
-                    l.languageOnboardingBody,
-                    style: TextStyle(color: AppColors.muted, height: 1.4),
-                  ),
-                ),
+              AppHeader(title: l.languageTitle),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
@@ -63,9 +48,6 @@ class LanguageScreen extends StatelessWidget {
                         onTap: () async {
                           SoundService.instance.play(Sfx.tap);
                           await store.setLocaleCode(lang.code);
-                          if (onboarding && context.mounted) {
-                            Navigator.pop(context);
-                          }
                         },
                       ),
                   ],

@@ -15,7 +15,6 @@ import 'daily_history_screen.dart';
 import 'game_screen.dart';
 import '../services/update_service.dart';
 import 'how_to_play_screen.dart';
-import 'language_screen.dart';
 import 'level_select_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
@@ -40,19 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) await _maybeOfferUpdate();
   }
 
-  /// Language first, then the rules — there is no point explaining the game in
-  /// a language the player did not choose.
+  /// The rules, once. There is no language step in front of them: the app
+  /// starts in the phone's own language, which is the one the player reads,
+  /// and Settings > Language is there for anyone who wants another.
   Future<void> _maybeShowOnboarding() async {
     final store = AppStore.instance;
-    if (!store.chosenLanguage) {
-      if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const LanguageScreen(onboarding: true),
-        ),
-      );
-    }
     if (store.seenHowTo) {
       if (mounted) setState(() {});
       return;

@@ -397,16 +397,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSystem => 'System default';
 
   @override
-  String get languageOnboardingTitle => 'Choose your language';
-
-  @override
-  String get languageOnboardingBody =>
-      'You can change this any time in Settings.';
-
-  @override
-  String get languageContinue => 'Continue';
-
-  @override
   String get reviewTitle => 'Enjoying Arrows?';
 
   @override

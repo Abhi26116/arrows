@@ -241,11 +241,11 @@ void main() {
     );
   });
 
-  testWidgets('the board hangs off the header on a tall phone',
+  testWidgets('the board sits centred under the header on a tall phone',
       (tester) async {
-    // A square board leaves slack on a tall screen. It belongs under the
-    // board, where the floating buttons already sit, not above it as a dead
-    // band between the progress bar and the first row of arrows.
+    // A square board leaves slack on a tall screen. Split evenly above and
+    // below, so the board reads as centred rather than pinned to the header
+    // with an empty band under it.
     tester.view.physicalSize = const Size(393, 852) * 3;
     tester.view.devicePixelRatio = 3;
     tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
@@ -262,11 +262,16 @@ void main() {
     final box = tester.getRect(find.byType(GameBoard));
     final side = math.min(box.width, box.height);
     final boardTop = box.center.dy - side / 2;
+    final boardBottom = boardTop + side;
     final total = LevelCatalog.byId(72).arrows.length;
     final counter = tester.getRect(find.text('0/$total'));
+    final safeBottom = 852 - 102 / 3;
 
-    expect(boardTop - counter.bottom, lessThan(48),
-        reason: 'slack above the board should stay capped');
+    final above = boardTop - counter.bottom;
+    final below = safeBottom - boardBottom;
+    expect(above, greaterThan(48), reason: 'a tall phone has slack to share');
+    expect((above - below).abs(), lessThan(1),
+        reason: 'slack should split evenly above and below the board');
   });
 
   testWidgets('header title and hearts sit on the screen centre',
