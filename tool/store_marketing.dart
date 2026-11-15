@@ -77,7 +77,7 @@ final _panels = <_Panel>[
     source: '01_hard_board',
     hue: GameThemes.midnight.arrowLine,
     headline: 'Tap the arrow\nwith a clear path',
-    sub: 'A neon logic puzzle.\nEighty hand-built boards.',
+    sub: 'A neon logic puzzle.\n600 boards to clear.',
   ),
   (
     art: _Art.rule,
@@ -98,7 +98,7 @@ final _panels = <_Panel>[
     art: _Art.device,
     source: '04_levels',
     hue: GameThemes.midnight.accent,
-    headline: 'Eighty boards,\nfour difficulties',
+    headline: '600 boards,\nfour difficulties',
     sub: 'Three hearts a board. The hearts\nyou keep become your stars.',
   ),
   (

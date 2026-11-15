@@ -24,6 +24,14 @@ fi
 
 BUILD_NUMBER="${1:-}"
 ARGS=(--release --dart-define=LIVE_ADS=true)
+
+# Analytics are off unless the Aptabase app key is in the environment:
+#   APTABASE_KEY=A-EU-0000000000 ./tool/build_release.sh
+if [ -n "${APTABASE_KEY:-}" ]; then
+  ARGS+=(--dart-define=APTABASE_KEY="$APTABASE_KEY")
+else
+  echo "warning: APTABASE_KEY not set — this bundle sends no analytics" >&2
+fi
 if [ -n "$BUILD_NUMBER" ]; then
   ARGS+=(--build-number="$BUILD_NUMBER")
 fi

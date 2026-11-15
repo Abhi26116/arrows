@@ -7,13 +7,14 @@ import '../theme/app_theme.dart';
 
 /// Bottom banner slot shared by every screen that shows one.
 ///
-/// Centres the ad (a 320pt banner in a full-width column would otherwise sit
-/// against the left edge), keeps it clear of the content above with a hairline
-/// rule, and takes itself off screen the moment ads are removed.
+/// Runs an anchored adaptive banner — as wide as the slot, at the height the
+/// SDK picks for that width — which earns more than the fixed 320x50. Keeps
+/// it clear of the content above with a hairline rule, and takes itself off
+/// screen the moment ads are removed.
 ///
-/// The banner's height is reserved from the first frame, so the screen above
-/// does not jump when the ad finishes loading — it fades into space that was
-/// always there.
+/// The height is reserved before the ad loads, so the screen above does not
+/// jump when it arrives — it fades into space that was already there. Until
+/// the adaptive size is known, the classic banner height stands in.
 class AdBannerSlot extends StatefulWidget {
   const AdBannerSlot({super.key});
 
@@ -23,21 +24,37 @@ class AdBannerSlot extends StatefulWidget {
 
 class _AdBannerSlotState extends State<AdBannerSlot> {
   BannerAd? _ad;
+  AdSize? _size;
+  bool _loading = false;
 
   @override
   void initState() {
     super.initState();
     AppStore.instance.addListener(_onStoreChanged);
-    _load();
   }
 
-  Future<void> _load() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The width comes from MediaQuery, which is not readable in initState.
+    if (!_loading) {
+      _loading = true;
+      _load(MediaQuery.of(context).size.width);
+    }
+  }
+
+  Future<void> _load(double width) async {
     if (!AppStore.instance.adsEnabled) return;
     // The SDK starts after the consent flow, so it may not be up yet.
     await AdsService.instance.ensureInitialized();
     if (!mounted || !AppStore.instance.adsEnabled) return;
 
+    final size = await AdsService.instance.bannerSize(width);
+    if (!mounted || !AppStore.instance.adsEnabled) return;
+    setState(() => _size = size);
+
     AdsService.instance.createBanner(
+      size: size,
       onLoaded: (ad) {
         // The screen can go away before the ad finishes loading.
         if (!mounted || !AppStore.instance.adsEnabled) {
@@ -69,7 +86,7 @@ class _AdBannerSlotState extends State<AdBannerSlot> {
     if (!AppStore.instance.adsEnabled) return const SizedBox.shrink();
 
     final ad = _ad;
-    final size = ad?.size ?? AdSize.banner;
+    final size = ad?.size ?? _size ?? AdSize.banner;
     return Container(
       width: double.infinity,
       alignment: Alignment.center,

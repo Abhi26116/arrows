@@ -207,11 +207,20 @@ void main() {
         // read "Non-consumable". Stand in the real ones.
         IapService.instance.products = [
           ProductDetails(
+            id: 'arrows_bundle',
+            title: 'Everything Pack',
+            description: 'No banner or pop-up ads, every theme, 30 hints.',
+            price: r'$4.99',
+            rawPrice: 4.99,
+            currencyCode: 'USD',
+            currencySymbol: r'$',
+          ),
+          ProductDetails(
             id: 'arrows_remove_ads',
             title: 'Remove Ads',
             description: 'No banners or interstitials.',
-            price: r'$1.99',
-            rawPrice: 1.99,
+            price: r'$3.99',
+            rawPrice: 3.99,
             currencyCode: 'USD',
             currencySymbol: r'$',
           ),
@@ -224,9 +233,35 @@ void main() {
             currencyCode: 'USD',
             currencySymbol: r'$',
           ),
+          ProductDetails(
+            id: 'arrows_hints_15',
+            title: '15 Hints',
+            description: 'Fifteen hints.',
+            price: r'$0.99',
+            rawPrice: 0.99,
+            currencyCode: 'USD',
+            currencySymbol: r'$',
+          ),
+          ProductDetails(
+            id: 'arrows_hints_60',
+            title: '60 Hints',
+            description: 'Sixty hints.',
+            price: r'$2.99',
+            rawPrice: 2.99,
+            currencyCode: 'USD',
+            currencySymbol: r'$',
+          ),
         ];
         addTearDown(() => IapService.instance.products = []);
         await shot(t, const ShopScreen(), 'iap_review_shop');
+        // The hint packs sit below the fold; App Review wants to see each
+        // product where it is sold, so the scrolled shop is a second shot.
+        await t.drag(find.byType(ListView), const Offset(0, -560));
+        await t.pump(const Duration(milliseconds: 600));
+        await expectLater(
+          find.byType(MaterialApp),
+          matchesGoldenFile('../store/screenshots/$platform/iap_review_hints.png'),
+        );
       });
     });
   }

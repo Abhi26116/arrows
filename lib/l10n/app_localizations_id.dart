@@ -166,10 +166,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get gameNoAdReady => 'Tidak ada iklan siap — coba lagi.';
 
   @override
-  String get gameHintAdHint =>
-      'Tonton iklan singkat di Toko untuk petunjuk tambahan, atau coba lagi.';
-
-  @override
   String get howToTitle => 'Cara main';
 
   @override
@@ -296,13 +292,38 @@ class AppLocalizationsId extends AppLocalizations {
   String get themesUnlockInShop => 'Buka paket tema di Toko';
 
   @override
-  String get themesFree => 'Gratis';
+  String themesTrialTitle(String name) {
+    return 'Coba $name selama sehari';
+  }
+
+  @override
+  String get themesTrialBody =>
+      'Tonton iklan singkat dan main dengan tema ini selama 24 jam ke depan.';
+
+  @override
+  String get themesTrialWatch => 'Tonton iklan';
+
+  @override
+  String themesUnlockAll(String price) {
+    return 'Buka semua tema · $price';
+  }
+
+  @override
+  String get themesLocked => 'Premium · Paket tema';
+
+  @override
+  String themesTrialLeft(int hours) {
+    return 'Uji coba · sisa $hours jam';
+  }
 
   @override
   String get themesActive => 'Aktif';
 
   @override
   String get themesPremium => 'Premium';
+
+  @override
+  String get themesFree => 'Gratis';
 
   @override
   String get themesPremiumPack => 'Premium · Paket tema';
@@ -314,8 +335,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get shopRemoveAds => 'Hapus iklan';
 
   @override
-  String get shopRemoveAdsBody =>
-      'Tanpa banner atau iklan sela. Petunjuk berhadiah tetap gratis.';
+  String shopRemoveAdsBody(int hints) {
+    return 'Tanpa banner atau iklan pop-up. Termasuk $hints petunjuk tambahan.';
+  }
 
   @override
   String get shopThemePack => 'Paket tema';
@@ -333,15 +355,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String shopBonusHintFree(int ready) {
-    return 'Iklan sudah dihapus, jadi petunjuknya gratis ($ready siap).';
-  }
-
-  @override
   String get shopWatchAnAd => 'Tonton iklan';
-
-  @override
-  String get shopFree => 'Gratis';
 
   @override
   String get shopNonConsumable => 'Sekali beli';
@@ -356,9 +370,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get shopWatch => 'Tonton';
 
   @override
-  String get shopClaim => 'Ambil';
-
-  @override
   String get shopRestore => 'Pulihkan pembelian';
 
   @override
@@ -370,6 +381,52 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get shopAdNotReady => 'Iklan belum siap — coba sebentar lagi.';
+
+  @override
+  String get shopBundle => 'Paket lengkap';
+
+  @override
+  String shopBundleBody(int hints) {
+    return 'Tanpa banner atau iklan pop-up, semua tema, dan $hints petunjuk tambahan.';
+  }
+
+  @override
+  String get shopBestValue => 'Paling hemat';
+
+  @override
+  String shopHintsHeader(int count) {
+    return 'Petunjuk · $count siap';
+  }
+
+  @override
+  String shopHintPack(int count) {
+    return '$count petunjuk';
+  }
+
+  @override
+  String get shopHintPackBody =>
+      'Untuk saat papan membuatmu buntu. Pakai kapan saja.';
+
+  @override
+  String get shopConsumable => 'Paket petunjuk';
+
+  @override
+  String get hintOutTitle => 'Petunjuk habis';
+
+  @override
+  String get hintOutBody =>
+      'Petunjuk pertama di setiap papan gratis. Ambil lagi untuk lanjut.';
+
+  @override
+  String get hintOutWatch => 'Tonton iklan · +1 petunjuk';
+
+  @override
+  String hintOutBuy(int count, String price) {
+    return '$count petunjuk · $price';
+  }
+
+  @override
+  String get hintOutLater => 'Nanti saja';
 
   @override
   String get dailyTitle => 'Harian';
@@ -396,19 +453,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get languageSystem => 'Bahasa sistem';
-
-  @override
-  String get reviewTitle => 'Suka main Arrows?';
-
-  @override
-  String get reviewBody =>
-      'Rating membantu orang lain menemukan game ini. Cuma sebentar kok.';
-
-  @override
-  String get reviewRate => 'Beri rating';
-
-  @override
-  String get reviewLater => 'Nanti saja';
 
   @override
   String get updateTitle => 'Ada pembaruan';

@@ -65,8 +65,11 @@ workflows:
       # archive and export with the profile fetched below.
       - name: Build the app unsigned
         script: |
+          # APTABASE_KEY lives in the ios_signing group next to the signing
+          # key. Left unset, the define is empty and analytics stays off.
           flutter build ios --release --no-codesign \
             --dart-define=LIVE_ADS=true \
+            --dart-define=APTABASE_KEY="${APTABASE_KEY:-}" \
             --build-number=$PROJECT_BUILD_NUMBER
       - name: Set up code signing
         script: |

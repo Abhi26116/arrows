@@ -8,9 +8,14 @@ import 'audio/sfx.dart';
 import 'data/progress_store.dart';
 import 'firebase/firebase_bootstrap.dart';
 import 'screens/splash_screen.dart';
+import 'services/analytics_service.dart';
 import 'services/iap_service.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
+
+// Held for the life of the app; a listener that is collected stops firing.
+// ignore: unused_element
+AppLifecycleListener? _resumeListener;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +35,16 @@ Future<void> main() async {
   await ThemeController.instance.load();
   await SoundService.instance.init();
   await FirebaseBootstrap.init();
+  await Analytics.instance.init();
+  Analytics.instance.track('app_open', {
+    'cleared': AppStore.instance.clearedCount,
+    'ads_removed': AppStore.instance.removeAdsOwned ? 'yes' : 'no',
+  });
+  // A rewarded theme trial can run out while the app sits in the background;
+  // re-check it whenever the player comes back.
+  _resumeListener = AppLifecycleListener(
+    onResume: () => ThemeController.instance.load(),
+  );
   // Deliberately not awaited. init() asks StoreKit whether purchases are
   // available, queries the products and restores past purchases — three
   // network round trips. Awaiting them here holds back runApp, so a slow or

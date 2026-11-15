@@ -6,6 +6,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../config/app_config.dart';
 import '../data/progress_store.dart';
+import 'analytics_service.dart';
 import 'consent_service.dart';
 
 class AdsService {
@@ -16,6 +17,19 @@ class AdsService {
   Completer<void>? _initialised;
   RewardedAd? _rewarded;
   InterstitialAd? _interstitial;
+
+  /// Boards a player clears before the first interstitial: the six tutorial
+  /// boards and two real ones. A first session is for learning the game.
+  static const minClearedForInterstitials = 8;
+
+  /// Wins between interstitials.
+  static const winsPerInterstitial = 2;
+
+  /// Never two interstitials closer than this, and none in the first minute
+  /// after launch.
+  static const interstitialGap = Duration(seconds: 60);
+
+  DateTime _lastInterstitial = DateTime.now();
 
   /// Whether the SDK finished starting up (successfully or not).
   bool get isReady => _ready;
@@ -49,10 +63,8 @@ class AdsService {
         );
       }
       _ready = true;
-      if (AppStore.instance.adsEnabled) {
-        loadRewarded();
-        loadInterstitial();
-      }
+      loadRewarded();
+      if (AppStore.instance.adsEnabled) loadInterstitial();
     } catch (e) {
       debugPrint('Ads init failed: $e');
       _ready = false;
@@ -77,10 +89,29 @@ class AdsService {
           ? AppConfig.androidInterstitialAdUnitId
           : AdTestIds.androidInterstitial);
 
-  BannerAd? createBanner({required void Function(BannerAd) onLoaded}) {
+  /// The anchored adaptive size for a slot [width] points wide, or the
+  /// classic 320x50 if the SDK cannot work one out. Adaptive banners fill the
+  /// width and earn more than the fixed size.
+  Future<AdSize> bannerSize(double width) async {
+    try {
+      final adaptive =
+          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+        width.truncate(),
+      );
+      if (adaptive != null) return adaptive;
+    } catch (e) {
+      debugPrint('Adaptive banner size failed: $e');
+    }
+    return AdSize.banner;
+  }
+
+  BannerAd? createBanner({
+    required AdSize size,
+    required void Function(BannerAd) onLoaded,
+  }) {
     if (!_ready || !AppStore.instance.adsEnabled) return null;
     final ad = BannerAd(
-      size: AdSize.banner,
+      size: size,
       adUnitId: _bannerId,
       listener: BannerAdListener(
         onAdLoaded: (ad) => onLoaded(ad as BannerAd),
@@ -96,7 +127,7 @@ class AdsService {
   }
 
   void loadRewarded() {
-    if (!_ready || !AppStore.instance.adsEnabled) return;
+    if (!_ready) return;
     RewardedAd.load(
       adUnitId: _rewardedId,
       request: const AdRequest(),
@@ -125,21 +156,35 @@ class AdsService {
     );
   }
 
-  Future<bool> showRewardedForHint() =>
-      _showRewarded(onReward: () => AppStore.instance.addBonusHints(1));
+  /// Whether a rewarded ad is loaded and can be shown straight away.
+  bool get rewardedReady => _rewarded != null;
+
+  Future<bool> showRewardedForHint({String placement = 'hint'}) =>
+      _showRewarded(
+        placement,
+        onReward: () => AppStore.instance.addBonusHints(1),
+      );
 
   /// Extra heart after running out of lives — same rewarded unit, no payload.
-  Future<bool> showRewardedForExtraLife() => _showRewarded();
+  Future<bool> showRewardedForExtraLife() => _showRewarded('extra_life');
 
-  Future<bool> _showRewarded({Future<void> Function()? onReward}) async {
-    if (!AppStore.instance.adsEnabled) {
-      // Ads removed — grant the reward directly.
-      await onReward?.call();
-      return true;
-    }
+  /// A day with one premium theme.
+  Future<bool> showRewardedForThemeTrial(String themeId) => _showRewarded(
+        'theme_trial',
+        onReward: () => AppStore.instance
+            .startThemeTrial(themeId, const Duration(hours: 24)),
+      );
+
+  Future<bool> _showRewarded(
+    String placement, {
+    Future<void> Function()? onReward,
+  }) async {
+    // The SDK starts after consent, so a tap can arrive before it is up.
+    await ensureInitialized();
     final ad = _rewarded;
     if (ad == null) {
       loadRewarded();
+      Analytics.instance.track('rewarded_unavailable', {'placement': placement});
       return false;
     }
     // Hand the ad over now: show() returns long before the ad closes, and a
@@ -179,16 +224,28 @@ class AdsService {
 
     // If the SDK never reports the ad closing, honour whatever was earned
     // rather than leaving the caller waiting on a future that never lands.
-    return closed.future.timeout(
+    final result = await closed.future.timeout(
       const Duration(minutes: 5),
       onTimeout: () => earned,
     );
+    Analytics.instance.track('rewarded', {
+      'placement': placement,
+      'earned': result ? 'yes' : 'no',
+    });
+    return result;
   }
 
-  Future<void> maybeShowInterstitialAfterWin() async {
+  /// Called after every win. Shows an interstitial once the player is past
+  /// the tutorial, every [winsPerInterstitial] wins, never within
+  /// [interstitialGap] of the last one — and never when [skip] is set, which
+  /// the win screen does when it has just asked for a rating.
+  Future<void> maybeShowInterstitialAfterWin({bool skip = false}) async {
     if (!AppStore.instance.adsEnabled) return;
     await AppStore.instance.bumpWinForAds();
-    if (AppStore.instance.winsSinceInterstitial < 3) return;
+    if (skip) return;
+    if (AppStore.instance.clearedCount < minClearedForInterstitials) return;
+    if (AppStore.instance.winsSinceInterstitial < winsPerInterstitial) return;
+    if (DateTime.now().difference(_lastInterstitial) < interstitialGap) return;
     final ad = _interstitial;
     if (ad == null) {
       loadInterstitial();
@@ -223,8 +280,19 @@ class AdsService {
       onTimeout: () => true,
     );
     // Only spend the counter on an ad the player actually saw, so a failed
-    // show does not cost them three wins' worth of quiet.
-    if (shown) await AppStore.instance.resetWinsSinceInterstitial();
+    // show does not cost them a whole cycle of quiet.
+    if (shown) {
+      _lastInterstitial = DateTime.now();
+      await AppStore.instance.resetWinsSinceInterstitial();
+      Analytics.instance.track('interstitial');
+    }
+  }
+
+  /// Drops the preloaded interstitial once ads are removed. Rewarded ads stay:
+  /// they are the player's choice.
+  void dropInterstitial() {
+    _interstitial?.dispose();
+    _interstitial = null;
   }
 
   void dispose() {

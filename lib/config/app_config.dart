@@ -63,9 +63,23 @@ class AppConfig {
   /// .addTestDeviceHashedId("<id>")" printed on the first run.
   static const List<String> consentTestDeviceIds = <String>[];
 
-  // Create these non-consumable products in Play Console / App Store Connect.
+  // Products, created under these exact ids in Play Console and App Store
+  // Connect. The first three are non-consumables (restorable); the hint packs
+  // are consumables and can be bought again.
   static const iapRemoveAds = 'arrows_remove_ads';
   static const iapThemePack = 'arrows_theme_pack';
+  static const iapBundle = 'arrows_bundle';
+  static const iapHints15 = 'arrows_hints_15';
+  static const iapHints60 = 'arrows_hints_60';
+
+  /// Hints each product adds. The non-consumables add theirs once per
+  /// install, on the purchase itself and never on a restore.
+  static const hintsPerProduct = <String, int>{
+    iapRemoveAds: 10,
+    iapBundle: 30,
+    iapHints15: 15,
+    iapHints60: 60,
+  };
 
   static const leaderboardCollection = 'leaderboard';
 }

@@ -1,6 +1,6 @@
 # Privacy Policy — Arrows
 
-**Last updated: 28 August 2026**
+**Last updated: 15 November 2026**
 
 Arrows is a puzzle game published by Tiny Genius Hub ("we", "us"). This policy
 explains what happens to data when you play it.
@@ -8,15 +8,17 @@ explains what happens to data when you play it.
 ## The short version
 
 We do not run servers and we do not have accounts. Your progress lives on your
-own device. The only data that leaves your phone is what Google's advertising
-and payment systems need in order to work.
+own device. What leaves your phone is what Google's advertising and the
+stores' payment systems need in order to work, and anonymous usage counts that
+tell us which boards are too hard — never anything that identifies you.
 
 ## What stays on your device
 
 - Level progress, stars and your daily streak
 - Settings: sound, haptics, grid, chosen theme
 - Your display name for the local leaderboard
-- Purchases you have made (ad removal, theme pack)
+- Purchases you have made (ad removal, theme pack, Everything Pack) and the
+  hints you have left
 
 This is stored by the operating system on your device. Deleting the app deletes
 it. We cannot see it, and it is not backed up to us.
@@ -33,9 +35,21 @@ choices:
   **Settings → Privacy options**.
 - On iOS you are asked for App Tracking Transparency permission. If you
   decline, ads still appear but are not personalised.
-- Buying **Remove Ads** stops ad requests entirely.
+- Buying **Remove Ads** (or the Everything Pack) stops banner and full-screen
+  ads. Ads you choose to watch for a reward — a hint, an extra heart, a day
+  with a theme — stay on offer, so the ad SDK keeps running and may still
+  process the data above.
 
 Google's own policy: https://policies.google.com/privacy
+
+**Aptabase** counts how the game is played, so we can see where players get
+stuck and fix it: events such as a board started, cleared or failed, a hint
+used, an ad watched, a purchase made, or the Shop opened. Each event carries
+the app version, the operating system and its version, and your device
+language. It carries **no identifier** — no advertising id, no device id, no
+account — only a random session number that is discarded after an hour of
+inactivity. Aptabase does not store IP addresses and keeps the data in the
+EU. Their policy: https://aptabase.com/legal/privacy
 
 **Apple / Google Play** handle in-app purchases. We never see your payment
 details — we only learn whether a purchase succeeded.
@@ -59,8 +73,10 @@ shown in the app, contact us and we will help you raise it with Google.
 - **Turn off personalised ads** — iOS: Settings → Privacy & Security →
   Tracking. Android: Settings → Google → Ads.
 - **Withdraw consent** (EEA/UK) — in-game Settings → Privacy options
-- **Remove ads entirely** — buy Remove Ads in the in-game Shop
-- **Delete everything** — uninstall the app
+- **Stop banner and full-screen ads** — buy Remove Ads or the Everything Pack
+  in the in-game Shop
+- **Delete everything** — uninstall the app. Usage counts already sent are
+  anonymous, so there is nothing that could be matched back to you to delete.
 
 ## Changes
 

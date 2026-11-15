@@ -4,6 +4,17 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- The App Store lists an app's languages from this key, and iOS only
+	     reports a language to Flutter when the bundle declares it. Keep it in
+	     step with lib/l10n/app_*.arb. -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>es</string>
+		<string>hi</string>
+		<string>id</string>
+		<string>pt</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Arrows</string>
 	<key>CFBundleExecutable</key>

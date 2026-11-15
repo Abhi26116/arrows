@@ -39,6 +39,9 @@ class AppStore extends ChangeNotifier {
   static const _keyBonusHints = 'bonus_hints';
   static const _keyShowGrid = 'settings_show_grid';
   static const _keyLocale = 'settings_locale';
+  static const _keyThemeTrial = 'theme_trial_until_';
+  static const _keyGrantedPurchases = 'granted_purchase_ids';
+  static const _keyGrantedOnce = 'granted_once_';
 
   SharedPreferences? _prefs;
 
@@ -188,6 +191,9 @@ class AppStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Whether banners and interstitials run. Rewarded ads are always on offer:
+  /// the player chooses to watch them, and Remove Ads never promised to take
+  /// that choice away.
   bool get adsEnabled => !removeAdsOwned;
 
   int get bonusHints => _prefs?.getInt(_keyBonusHints) ?? 0;
@@ -204,6 +210,53 @@ class AppStore extends ChangeNotifier {
     await _prefs!.setInt(_keyBonusHints, bonusHints - 1);
     notifyListeners();
     return true;
+  }
+
+  /// Records that [purchaseId] has been paid out, and reports whether this
+  /// is the first time. A store can deliver the same transaction twice — a
+  /// purchase not yet finished comes back on the next launch — and a hint
+  /// pack must not pay out twice for it.
+  Future<bool> claimPurchase(String purchaseId) async {
+    await init();
+    final seen = _prefs!.getStringList(_keyGrantedPurchases) ?? const [];
+    if (seen.contains(purchaseId)) return false;
+    // A short memory is enough: a redelivery comes within days, not years.
+    final kept = [...seen, purchaseId];
+    await _prefs!.setStringList(
+      _keyGrantedPurchases,
+      kept.length > 50 ? kept.sublist(kept.length - 50) : kept,
+    );
+    return true;
+  }
+
+  /// True the first time it is called for [key] on this install.
+  Future<bool> claimOnce(String key) async {
+    await init();
+    if (_prefs!.getBool('$_keyGrantedOnce$key') ?? false) return false;
+    await _prefs!.setBool('$_keyGrantedOnce$key', true);
+    return true;
+  }
+
+  // —— Theme trials ——
+
+  /// When the rewarded trial of [themeId] runs out, or null if there is none.
+  DateTime? themeTrialUntil(String themeId) {
+    final ms = _prefs?.getInt('$_keyThemeTrial$themeId');
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  bool themeTrialActive(String themeId) {
+    final until = themeTrialUntil(themeId);
+    return until != null && DateTime.now().isBefore(until);
+  }
+
+  Future<void> startThemeTrial(String themeId, Duration length) async {
+    await init();
+    await _prefs!.setInt(
+      '$_keyThemeTrial$themeId',
+      DateTime.now().add(length).millisecondsSinceEpoch,
+    );
+    notifyListeners();
   }
 
   int get winsSinceInterstitial => _prefs?.getInt(_keyWinStreakAds) ?? 0;

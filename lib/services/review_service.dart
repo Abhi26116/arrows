@@ -2,66 +2,75 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Asks for a store rating, at a moment the player is likely to be pleased and
-/// rarely enough that it never becomes a nuisance.
+/// Asks for a store rating at a moment the player is likely to be pleased.
 ///
-/// Both stores ration the real prompt themselves — iOS shows it at most three
-/// times a year and silently ignores the rest — so the app must never treat a
-/// request as having been seen, and must never make the moment feel owed. The
-/// rules here are deliberately stricter than the stores':
+/// Ratings are what make a listing look alive in search results, so the app
+/// asks early, straight through the store's own sheet, and a few times over
+/// the life of an install rather than once:
 ///
 /// * only after a win, never mid-board or after a loss
-/// * not before the player has cleared enough to have an opinion
-/// * once per install unless they actively decline, then not for months
+/// * the first time on a clean three-star win once the tutorial is behind
+///   them, or on any win a little later
+/// * again at [_laterMilestones], each at least [_gapDays] after the last
+///
+/// Both stores ration the real sheet themselves — iOS shows it at most three
+/// times a year and silently ignores the rest — so a request is never treated
+/// as having been seen, and the app never puts its own dialog in front of it.
+/// A pre-prompt only loses the people who would have rated.
 class ReviewService {
   ReviewService._();
   static final ReviewService instance = ReviewService._();
 
-  static const _keyAsked = 'review_asked_at';
-  static const _keyDone = 'review_done';
+  static const _keyAskedAt = 'review_asked_at';
+  static const _keyAskCount = 'review_ask_count';
 
-  /// Enough boards that the player knows whether they like it.
-  static const _winsBeforeAsking = 8;
+  /// Cleared boards before a perfect win may trigger the first ask: the six
+  /// tutorial boards plus one of the real ones.
+  static const _firstAskPerfect = 7;
 
-  /// If they said "not now", leave them alone for a good while.
-  static const _quietDays = 60;
+  /// Cleared boards after which any win may trigger the first ask.
+  static const _firstAskAny = 10;
 
-  final InAppReview _review = InAppReview.instance;
+  /// Cleared-board counts for the second and third asks.
+  static const _laterMilestones = [30, 80];
 
-  /// Whether this is a good moment to ask. Cheap enough to call after a win.
-  Future<bool> shouldAsk(int totalCleared) async {
-    if (totalCleared < _winsBeforeAsking) return false;
+  /// Never two asks closer together than this.
+  static const _gapDays = 21;
+
+  /// Whether this win is a good moment to ask. Cheap enough to call on every
+  /// win.
+  Future<bool> shouldAsk({
+    required int totalCleared,
+    required int stars,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_keyDone) ?? false) return false;
-    final asked = prefs.getInt(_keyAsked);
+    final count = prefs.getInt(_keyAskCount) ?? 0;
+    if (count > _laterMilestones.length) return false;
+
+    final asked = prefs.getInt(_keyAskedAt);
     if (asked != null) {
       final since = DateTime.now().millisecondsSinceEpoch - asked;
-      if (since < const Duration(days: _quietDays).inMilliseconds) return false;
+      if (since < const Duration(days: _gapDays).inMilliseconds) return false;
     }
-    return true;
-  }
 
-  /// Records that the player was asked and chose not to rate now.
-  Future<void> declined() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyAsked, DateTime.now().millisecondsSinceEpoch);
+    if (count == 0) {
+      return totalCleared >= _firstAskAny ||
+          (totalCleared >= _firstAskPerfect && stars >= 3);
+    }
+    return totalCleared >= _laterMilestones[count - 1];
   }
 
   /// Hands over to the store's own rating sheet.
   ///
-  /// The store decides whether to actually show anything, and never tells us
-  /// what the player did — so this counts as done either way. Asking again
-  /// because we could not observe a rating is exactly the nagging the quotas
-  /// exist to prevent.
-  Future<void> accepted() async {
+  /// The store decides whether to show anything and never says what the
+  /// player did, so this counts as an ask either way.
+  Future<void> request() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyDone, true);
+    await prefs.setInt(_keyAskedAt, DateTime.now().millisecondsSinceEpoch);
+    await prefs.setInt(_keyAskCount, (prefs.getInt(_keyAskCount) ?? 0) + 1);
     try {
-      if (await _review.isAvailable()) {
-        await _review.requestReview();
-      } else {
-        await _review.openStoreListing();
-      }
+      final review = InAppReview.instance;
+      if (await review.isAvailable()) await review.requestReview();
     } catch (e) {
       debugPrint('Review request failed: $e');
     }

@@ -165,10 +165,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameNoAdReady => 'No ad ready — try again.';
 
   @override
-  String get gameHintAdHint =>
-      'Watch a short ad in Shop for bonus hints, or try again.';
-
-  @override
   String get howToTitle => 'How to Play';
 
   @override
@@ -295,13 +291,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themesUnlockInShop => 'Unlock Theme Pack in Shop';
 
   @override
-  String get themesFree => 'Free';
+  String themesTrialTitle(String name) {
+    return 'Try $name for a day';
+  }
+
+  @override
+  String get themesTrialBody =>
+      'Watch a short ad and play in this theme for the next 24 hours.';
+
+  @override
+  String get themesTrialWatch => 'Watch an ad';
+
+  @override
+  String themesUnlockAll(String price) {
+    return 'Unlock all themes · $price';
+  }
+
+  @override
+  String get themesLocked => 'Premium · Theme Pack';
+
+  @override
+  String themesTrialLeft(int hours) {
+    return 'Trial · ${hours}h left';
+  }
 
   @override
   String get themesActive => 'Active';
 
   @override
   String get themesPremium => 'Premium';
+
+  @override
+  String get themesFree => 'Free';
 
   @override
   String get themesPremiumPack => 'Premium · Theme Pack';
@@ -313,8 +334,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopRemoveAds => 'Remove Ads';
 
   @override
-  String get shopRemoveAdsBody =>
-      'No banners or interstitials. Rewarded hints stay free.';
+  String shopRemoveAdsBody(int hints) {
+    return 'No banners or pop-up ads. Comes with $hints bonus hints.';
+  }
 
   @override
   String get shopThemePack => 'Theme Pack';
@@ -332,15 +354,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String shopBonusHintFree(int ready) {
-    return 'Ads are removed, so hints are on the house ($ready ready).';
-  }
-
-  @override
   String get shopWatchAnAd => 'Watch an ad';
-
-  @override
-  String get shopFree => 'Free';
 
   @override
   String get shopNonConsumable => 'Non-consumable';
@@ -355,9 +369,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopWatch => 'Watch';
 
   @override
-  String get shopClaim => 'Claim';
-
-  @override
   String get shopRestore => 'Restore purchases';
 
   @override
@@ -369,6 +380,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopAdNotReady => 'Ad not ready — try again in a moment.';
+
+  @override
+  String get shopBundle => 'Everything Pack';
+
+  @override
+  String shopBundleBody(int hints) {
+    return 'No banners or pop-up ads, every theme, and $hints bonus hints.';
+  }
+
+  @override
+  String get shopBestValue => 'Best value';
+
+  @override
+  String shopHintsHeader(int count) {
+    return 'Hints · $count ready';
+  }
+
+  @override
+  String shopHintPack(int count) {
+    return '$count hints';
+  }
+
+  @override
+  String get shopHintPackBody =>
+      'For when a board has you stuck. Use them any time.';
+
+  @override
+  String get shopConsumable => 'Hint pack';
+
+  @override
+  String get hintOutTitle => 'Out of hints';
+
+  @override
+  String get hintOutBody =>
+      'Your first hint on every board is free. Get more to keep going.';
+
+  @override
+  String get hintOutWatch => 'Watch an ad · +1 hint';
+
+  @override
+  String hintOutBuy(int count, String price) {
+    return '$count hints · $price';
+  }
+
+  @override
+  String get hintOutLater => 'Not now';
 
   @override
   String get dailyTitle => 'Daily';
@@ -395,19 +452,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageSystem => 'System default';
-
-  @override
-  String get reviewTitle => 'Enjoying Arrows?';
-
-  @override
-  String get reviewBody =>
-      'A rating helps other people find the game. It takes a moment.';
-
-  @override
-  String get reviewRate => 'Rate it';
-
-  @override
-  String get reviewLater => 'Not now';
 
   @override
   String get updateTitle => 'Update available';

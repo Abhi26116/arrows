@@ -166,10 +166,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gameNoAdReady => 'Nenhum anúncio pronto — tente de novo.';
 
   @override
-  String get gameHintAdHint =>
-      'Assista a um anúncio curto na Loja para ganhar dicas, ou tente de novo.';
-
-  @override
   String get howToTitle => 'Como jogar';
 
   @override
@@ -297,13 +293,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get themesUnlockInShop => 'Desbloqueie o pacote de temas na Loja';
 
   @override
-  String get themesFree => 'Grátis';
+  String themesTrialTitle(String name) {
+    return 'Experimente $name por um dia';
+  }
+
+  @override
+  String get themesTrialBody =>
+      'Assista a um anúncio curto e jogue com este tema nas próximas 24 horas.';
+
+  @override
+  String get themesTrialWatch => 'Ver um anúncio';
+
+  @override
+  String themesUnlockAll(String price) {
+    return 'Desbloquear todos os temas · $price';
+  }
+
+  @override
+  String get themesLocked => 'Premium · Pacote de temas';
+
+  @override
+  String themesTrialLeft(int hours) {
+    return 'Teste · faltam $hours h';
+  }
 
   @override
   String get themesActive => 'Ativo';
 
   @override
   String get themesPremium => 'Premium';
+
+  @override
+  String get themesFree => 'Grátis';
 
   @override
   String get themesPremiumPack => 'Premium · Pacote de temas';
@@ -315,8 +336,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get shopRemoveAds => 'Remover anúncios';
 
   @override
-  String get shopRemoveAdsBody =>
-      'Sem banners nem anúncios entre partidas. As dicas com recompensa continuam grátis.';
+  String shopRemoveAdsBody(int hints) {
+    return 'Sem banners nem anúncios pop-up. Vem com $hints dicas extras.';
+  }
 
   @override
   String get shopThemePack => 'Pacote de temas';
@@ -334,15 +356,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String shopBonusHintFree(int ready) {
-    return 'Sem anúncios, então as dicas são por nossa conta ($ready prontas).';
-  }
-
-  @override
   String get shopWatchAnAd => 'Ver um anúncio';
-
-  @override
-  String get shopFree => 'Grátis';
 
   @override
   String get shopNonConsumable => 'Compra única';
@@ -357,9 +371,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get shopWatch => 'Ver';
 
   @override
-  String get shopClaim => 'Pegar';
-
-  @override
   String get shopRestore => 'Restaurar compras';
 
   @override
@@ -371,6 +382,52 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get shopAdNotReady => 'Anúncio não está pronto — tente daqui a pouco.';
+
+  @override
+  String get shopBundle => 'Pacote completo';
+
+  @override
+  String shopBundleBody(int hints) {
+    return 'Sem banners nem anúncios pop-up, todos os temas e $hints dicas extras.';
+  }
+
+  @override
+  String get shopBestValue => 'Melhor custo';
+
+  @override
+  String shopHintsHeader(int count) {
+    return 'Dicas · $count prontas';
+  }
+
+  @override
+  String shopHintPack(int count) {
+    return '$count dicas';
+  }
+
+  @override
+  String get shopHintPackBody =>
+      'Para quando um tabuleiro te travar. Use quando quiser.';
+
+  @override
+  String get shopConsumable => 'Pacote de dicas';
+
+  @override
+  String get hintOutTitle => 'Sem dicas';
+
+  @override
+  String get hintOutBody =>
+      'A primeira dica de cada tabuleiro é grátis. Pegue mais para continuar.';
+
+  @override
+  String get hintOutWatch => 'Ver um anúncio · +1 dica';
+
+  @override
+  String hintOutBuy(int count, String price) {
+    return '$count dicas · $price';
+  }
+
+  @override
+  String get hintOutLater => 'Agora não';
 
   @override
   String get dailyTitle => 'Diário';
@@ -397,19 +454,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get languageSystem => 'Idioma do sistema';
-
-  @override
-  String get reviewTitle => 'Curtindo o Arrows?';
-
-  @override
-  String get reviewBody =>
-      'Uma avaliação ajuda outras pessoas a encontrar o jogo. Leva só um instante.';
-
-  @override
-  String get reviewRate => 'Avaliar';
-
-  @override
-  String get reviewLater => 'Agora não';
 
   @override
   String get updateTitle => 'Atualização disponível';

@@ -22,7 +22,6 @@ const int _lookahead = 6;
 class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   Widget build(BuildContext context) {
-    final levels = LevelCatalog.all;
     final store = AppStore.instance;
 
     // Only ever show a little way past the player's frontier — the list must
@@ -69,12 +68,14 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       return const _MoreAhead();
                     }
                     final pack = packs[packIndex];
-                    final packLevels = levels
-                        .where((l) =>
-                            l.id >= pack.startId &&
-                            l.id <= pack.endId &&
-                            l.id <= frontier)
-                        .toList();
+                    // Ids only: a tile needs its number and stars, never the
+                    // board, so nothing here generates a level.
+                    final packLevels = [
+                      for (var id = pack.startId;
+                          id <= pack.endId && id <= frontier;
+                          id++)
+                        id,
+                    ];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -106,13 +107,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                           ),
                           itemCount: packLevels.length,
                           itemBuilder: (context, index) {
-                            final level = packLevels[index];
-                            final unlocked = store.isUnlocked(level.id);
-                            final stars = store.starsFor(level.id);
+                            final levelId = packLevels[index];
+                            final unlocked = store.isUnlocked(levelId);
+                            final stars = store.starsFor(levelId);
                             return _LevelTile(
-                              id: level.id,
+                              id: levelId,
                               unlocked: unlocked,
-                              isCurrent: unlocked && level.id == frontierLevel,
+                              isCurrent: unlocked && levelId == frontierLevel,
                               stars: stars,
                               onTap: unlocked
                                   ? () async {
@@ -121,7 +122,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) =>
-                                              GameScreen(levelId: level.id),
+                                              GameScreen(levelId: levelId),
                                         ),
                                       );
                                       if (mounted) setState(() {});

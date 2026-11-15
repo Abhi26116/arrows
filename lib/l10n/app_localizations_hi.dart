@@ -166,10 +166,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameNoAdReady => 'कोई विज्ञापन तैयार नहीं — फिर कोशिश करें।';
 
   @override
-  String get gameHintAdHint =>
-      'बोनस संकेत के लिए शॉप में छोटा विज्ञापन देखें, या फिर कोशिश करें।';
-
-  @override
   String get howToTitle => 'कैसे खेलें';
 
   @override
@@ -296,13 +292,38 @@ class AppLocalizationsHi extends AppLocalizations {
   String get themesUnlockInShop => 'शॉप में थीम पैक अनलॉक करें';
 
   @override
-  String get themesFree => 'मुफ़्त';
+  String themesTrialTitle(String name) {
+    return '$name को एक दिन आज़माएँ';
+  }
+
+  @override
+  String get themesTrialBody =>
+      'एक छोटा विज्ञापन देखें और अगले 24 घंटे इस थीम में खेलें।';
+
+  @override
+  String get themesTrialWatch => 'विज्ञापन देखें';
+
+  @override
+  String themesUnlockAll(String price) {
+    return 'सारी थीम अनलॉक करें · $price';
+  }
+
+  @override
+  String get themesLocked => 'प्रीमियम · थीम पैक';
+
+  @override
+  String themesTrialLeft(int hours) {
+    return 'ट्रायल · $hours घंटे बाकी';
+  }
 
   @override
   String get themesActive => 'चालू';
 
   @override
   String get themesPremium => 'प्रीमियम';
+
+  @override
+  String get themesFree => 'मुफ़्त';
 
   @override
   String get themesPremiumPack => 'प्रीमियम · थीम पैक';
@@ -314,8 +335,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shopRemoveAds => 'विज्ञापन हटाएँ';
 
   @override
-  String get shopRemoveAdsBody =>
-      'कोई बैनर या बीच का विज्ञापन नहीं। इनाम वाले संकेत मुफ़्त ही रहेंगे।';
+  String shopRemoveAdsBody(int hints) {
+    return 'कोई बैनर या पॉप-अप विज्ञापन नहीं। साथ में $hints बोनस संकेत।';
+  }
 
   @override
   String get shopThemePack => 'थीम पैक';
@@ -333,15 +355,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String shopBonusHintFree(int ready) {
-    return 'विज्ञापन हटे हुए हैं, तो संकेत मुफ़्त हैं ($ready तैयार)।';
-  }
-
-  @override
   String get shopWatchAnAd => 'विज्ञापन देखें';
-
-  @override
-  String get shopFree => 'मुफ़्त';
 
   @override
   String get shopNonConsumable => 'एक बार की खरीद';
@@ -356,9 +370,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get shopWatch => 'देखें';
 
   @override
-  String get shopClaim => 'लें';
-
-  @override
   String get shopRestore => 'खरीदारी वापस लाएँ';
 
   @override
@@ -371,6 +382,52 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get shopAdNotReady =>
       'विज्ञापन तैयार नहीं — थोड़ी देर में कोशिश करें।';
+
+  @override
+  String get shopBundle => 'संपूर्ण पैक';
+
+  @override
+  String shopBundleBody(int hints) {
+    return 'कोई बैनर या पॉप-अप विज्ञापन नहीं, सारी थीम, और $hints बोनस संकेत।';
+  }
+
+  @override
+  String get shopBestValue => 'सबसे फ़ायदेमंद';
+
+  @override
+  String shopHintsHeader(int count) {
+    return 'संकेत · $count तैयार';
+  }
+
+  @override
+  String shopHintPack(int count) {
+    return '$count संकेत';
+  }
+
+  @override
+  String get shopHintPackBody =>
+      'जब कोई बोर्ड अटका दे, तब के लिए। कभी भी इस्तेमाल करें।';
+
+  @override
+  String get shopConsumable => 'संकेत पैक';
+
+  @override
+  String get hintOutTitle => 'संकेत खत्म';
+
+  @override
+  String get hintOutBody =>
+      'हर बोर्ड पर पहला संकेत मुफ़्त है। आगे बढ़ने के लिए और लें।';
+
+  @override
+  String get hintOutWatch => 'विज्ञापन देखें · +1 संकेत';
+
+  @override
+  String hintOutBuy(int count, String price) {
+    return '$count संकेत · $price';
+  }
+
+  @override
+  String get hintOutLater => 'अभी नहीं';
 
   @override
   String get dailyTitle => 'डेली';
@@ -397,19 +454,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get languageSystem => 'फ़ोन की भाषा';
-
-  @override
-  String get reviewTitle => 'Arrows पसंद आ रहा है?';
-
-  @override
-  String get reviewBody =>
-      'आपकी रेटिंग से दूसरों को यह गेम मिलने में मदद मिलती है। बस एक पल लगेगा।';
-
-  @override
-  String get reviewRate => 'रेटिंग दें';
-
-  @override
-  String get reviewLater => 'अभी नहीं';
 
   @override
   String get updateTitle => 'नया अपडेट आया है';

@@ -386,12 +386,6 @@ abstract class AppLocalizations {
   /// **'No ad ready — try again.'**
   String get gameNoAdReady;
 
-  /// No description provided for @gameHintAdHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Watch a short ad in Shop for bonus hints, or try again.'**
-  String get gameHintAdHint;
-
   /// No description provided for @howToTitle.
   ///
   /// In en, this message translates to:
@@ -632,11 +626,41 @@ abstract class AppLocalizations {
   /// **'Unlock Theme Pack in Shop'**
   String get themesUnlockInShop;
 
-  /// No description provided for @themesFree.
+  /// No description provided for @themesTrialTitle.
   ///
   /// In en, this message translates to:
-  /// **'Free'**
-  String get themesFree;
+  /// **'Try {name} for a day'**
+  String themesTrialTitle(String name);
+
+  /// No description provided for @themesTrialBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch a short ad and play in this theme for the next 24 hours.'**
+  String get themesTrialBody;
+
+  /// No description provided for @themesTrialWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch an ad'**
+  String get themesTrialWatch;
+
+  /// No description provided for @themesUnlockAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock all themes · {price}'**
+  String themesUnlockAll(String price);
+
+  /// No description provided for @themesLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium · Theme Pack'**
+  String get themesLocked;
+
+  /// No description provided for @themesTrialLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Trial · {hours}h left'**
+  String themesTrialLeft(int hours);
 
   /// No description provided for @themesActive.
   ///
@@ -649,6 +673,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Premium'**
   String get themesPremium;
+
+  /// No description provided for @themesFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get themesFree;
 
   /// No description provided for @themesPremiumPack.
   ///
@@ -671,8 +701,8 @@ abstract class AppLocalizations {
   /// No description provided for @shopRemoveAdsBody.
   ///
   /// In en, this message translates to:
-  /// **'No banners or interstitials. Rewarded hints stay free.'**
-  String get shopRemoveAdsBody;
+  /// **'No banners or pop-up ads. Comes with {hints} bonus hints.'**
+  String shopRemoveAdsBody(int hints);
 
   /// No description provided for @shopThemePack.
   ///
@@ -698,23 +728,11 @@ abstract class AppLocalizations {
   /// **'Watch a short ad for a bonus hint ({ready} ready).'**
   String shopBonusHintWatch(int ready);
 
-  /// No description provided for @shopBonusHintFree.
-  ///
-  /// In en, this message translates to:
-  /// **'Ads are removed, so hints are on the house ({ready} ready).'**
-  String shopBonusHintFree(int ready);
-
   /// No description provided for @shopWatchAnAd.
   ///
   /// In en, this message translates to:
   /// **'Watch an ad'**
   String get shopWatchAnAd;
-
-  /// No description provided for @shopFree.
-  ///
-  /// In en, this message translates to:
-  /// **'Free'**
-  String get shopFree;
 
   /// No description provided for @shopNonConsumable.
   ///
@@ -740,12 +758,6 @@ abstract class AppLocalizations {
   /// **'Watch'**
   String get shopWatch;
 
-  /// No description provided for @shopClaim.
-  ///
-  /// In en, this message translates to:
-  /// **'Claim'**
-  String get shopClaim;
-
   /// No description provided for @shopRestore.
   ///
   /// In en, this message translates to:
@@ -769,6 +781,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ad not ready — try again in a moment.'**
   String get shopAdNotReady;
+
+  /// No description provided for @shopBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything Pack'**
+  String get shopBundle;
+
+  /// No description provided for @shopBundleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No banners or pop-up ads, every theme, and {hints} bonus hints.'**
+  String shopBundleBody(int hints);
+
+  /// No description provided for @shopBestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Best value'**
+  String get shopBestValue;
+
+  /// No description provided for @shopHintsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Hints · {count} ready'**
+  String shopHintsHeader(int count);
+
+  /// No description provided for @shopHintPack.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hints'**
+  String shopHintPack(int count);
+
+  /// No description provided for @shopHintPackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For when a board has you stuck. Use them any time.'**
+  String get shopHintPackBody;
+
+  /// No description provided for @shopConsumable.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint pack'**
+  String get shopConsumable;
+
+  /// No description provided for @hintOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of hints'**
+  String get hintOutTitle;
+
+  /// No description provided for @hintOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first hint on every board is free. Get more to keep going.'**
+  String get hintOutBody;
+
+  /// No description provided for @hintOutWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch an ad · +1 hint'**
+  String get hintOutWatch;
+
+  /// No description provided for @hintOutBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hints · {price}'**
+  String hintOutBuy(int count, String price);
+
+  /// No description provided for @hintOutLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get hintOutLater;
 
   /// No description provided for @dailyTitle.
   ///
@@ -805,30 +889,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System default'**
   String get languageSystem;
-
-  /// No description provided for @reviewTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enjoying Arrows?'**
-  String get reviewTitle;
-
-  /// No description provided for @reviewBody.
-  ///
-  /// In en, this message translates to:
-  /// **'A rating helps other people find the game. It takes a moment.'**
-  String get reviewBody;
-
-  /// No description provided for @reviewRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Rate it'**
-  String get reviewRate;
-
-  /// No description provided for @reviewLater.
-  ///
-  /// In en, this message translates to:
-  /// **'Not now'**
-  String get reviewLater;
 
   /// No description provided for @updateTitle.
   ///

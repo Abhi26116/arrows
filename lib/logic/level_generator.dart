@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 import '../models/arrow.dart';
 import '../models/direction.dart';
 import '../models/level.dart';
@@ -298,22 +300,64 @@ class LevelPack {
   final int endId;
 }
 
+/// Every campaign board, by id.
+///
+/// Boards 1-80 are the ones 1.0 shipped: six hand-placed, then 74 drawn in
+/// one sequence from a single seeded generator. That sequence is why they are
+/// built together, and why nothing may be inserted before them — any change
+/// to the order would quietly swap every board after it under players' saved
+/// stars.
+///
+/// Boards from 81 on come in chapters of [chapterSize]. Each is generated on
+/// its own from a seed derived from its id, so it costs nothing until it is
+/// played, never changes, and adding chapters later leaves every existing
+/// board exactly as it was.
 class LevelCatalog {
   LevelCatalog._();
 
   static final _gen = LevelGenerator(Random(42));
 
-  static List<LevelData>? _cache;
+  /// Boards in the 1.0 sequence.
+  static const legacyCount = 80;
+
+  static const chapterSize = 40;
+
+  /// Chapter names, in order. Appending one adds [chapterSize] boards.
+  static const chapterNames = [
+    'Drift',
+    'Lattice',
+    'Switchback',
+    'Gridlock',
+    'Labyrinth',
+    'Undertow',
+    'Crosscurrent',
+    'Keystone',
+    'Riptide',
+    'Overdrive',
+    'Zenith',
+    'Event Horizon',
+    'Infinity',
+  ];
+
+  static const count = legacyCount + chapterSize * 13;
+
+  static List<LevelData>? _legacy;
+  static final Map<int, LevelData> _chapterCache = {};
   static List<LevelPack>? _packs;
 
-  static List<LevelData> get all {
-    _cache ??= [..._handcrafted, ..._generated];
-    return _cache!;
+  /// Every board, generated. For tests and tooling — the app itself only
+  /// ever asks for the board it is about to show.
+  static List<LevelData> get all =>
+      [for (var id = 1; id <= count; id++) byId(id)];
+
+  static LevelData byId(int id) {
+    assert(id >= 1 && id <= count, 'No level $id');
+    if (id <= legacyCount) {
+      _legacy ??= [..._handcrafted, ..._generated];
+      return _legacy![id - 1];
+    }
+    return _chapterCache.putIfAbsent(id, () => _chapterLevel(id));
   }
-
-  static LevelData byId(int id) => all.firstWhere((l) => l.id == id);
-
-  static int get count => all.length;
 
   static List<LevelPack> get packs {
     _packs ??= _buildPacks();
@@ -322,15 +366,72 @@ class LevelCatalog {
 
   static List<LevelPack> _buildPacks() {
     // Keep in sync with handcrafted count + generated pack sizes below.
-    return const [
-      LevelPack('Tutorial', 1, 6),
-      LevelPack('Warmup', 7, 14),
-      LevelPack('Focus', 15, 24),
-      LevelPack('Tangled', 25, 36),
-      LevelPack('Pressure', 37, 50),
-      LevelPack('Master', 51, 64),
-      LevelPack('Endless Edge', 65, 80),
+    return [
+      const LevelPack('Tutorial', 1, 6),
+      const LevelPack('Warmup', 7, 14),
+      const LevelPack('Focus', 15, 24),
+      const LevelPack('Tangled', 25, 36),
+      const LevelPack('Pressure', 37, 50),
+      const LevelPack('Master', 51, 64),
+      const LevelPack('Endless Edge', 65, 80),
+      for (var i = 0; i < chapterNames.length; i++)
+        LevelPack(
+          chapterNames[i],
+          legacyCount + i * chapterSize + 1,
+          legacyCount + (i + 1) * chapterSize,
+        ),
     ];
+  }
+
+  /// The difficulty ladder a chapter climbs, from a 9x9 Medium to an 18x18
+  /// Expert — the same settings the 1.0 packs use, so a chapter board feels
+  /// like the game the player already knows.
+  ///
+  /// (rows, fill, maxLength, bendChance, maxBends, captives, difficulty)
+  static const _tiers = <(int, double, int, double, int, int, String)>[
+    (9, 0.58, 5, 0.30, 2, 1, 'Medium'),
+    (10, 0.63, 5, 0.35, 2, 1, 'Medium'),
+    (11, 0.68, 6, 0.45, 2, 1, 'Medium'),
+    (12, 0.72, 7, 0.50, 2, 2, 'Medium'),
+    (13, 0.76, 8, 0.60, 3, 2, 'Hard'),
+    (14, 0.80, 9, 0.65, 3, 2, 'Hard'),
+    (15, 0.83, 11, 0.70, 4, 2, 'Hard'),
+    (16, 0.85, 12, 0.75, 4, 2, 'Hard'),
+    (17, 0.88, 14, 0.80, 5, 3, 'Expert'),
+    (18, 0.90, 16, 0.85, 6, 3, 'Expert'),
+  ];
+
+  /// Generates chapter board [id] from scratch, bypassing the cache.
+  @visibleForTesting
+  static LevelData generateChapterLevel(int id) => _chapterLevel(id);
+
+  /// Each chapter climbs the ladder from a breather to an Expert finish, and
+  /// later chapters start a rung or two higher, so the game keeps getting
+  /// harder overall without every board after 80 being an 18x18.
+  static LevelData _chapterLevel(int id) {
+    final offset = id - legacyCount - 1;
+    final chapter = offset ~/ chapterSize;
+    final within = offset % chapterSize;
+    final firstTier = min(chapter ~/ 2, 4);
+    final span = _tiers.length - firstTier;
+    final tier = firstTier + (within * span) ~/ chapterSize;
+    final (rows, fill, maxLength, bendChance, maxBends, captives, difficulty) =
+        _tiers[tier];
+    // A prime multiplier spreads neighbouring ids across the seed space; the
+    // offset keeps these seeds clear of the daily challenge's date seeds.
+    final generator = LevelGenerator(Random(0x5EED0000 + id * 7919));
+    return generator.generate(
+      id: id,
+      rows: rows,
+      cols: rows,
+      fill: fill,
+      maxLength: maxLength,
+      bendChance: bendChance,
+      maxBends: maxBends,
+      captiveCount: captives,
+      difficulty: difficulty,
+      label: '${chapterNames[chapter]} $id',
+    );
   }
 
   /// Tutorial boards stay small and hand-placed. They introduce arrow length

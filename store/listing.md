@@ -7,41 +7,51 @@ store's limits.
 
 ## App name / title
 
-**Arrows: Line Puzzle** — 19 chars (App Store limit 30, Play limit 30)
-
-Alternatives if that name is taken:
-- `Arrows — Clear the Board` (24)
-- `Arrows Line Logic` (17)
+**Arrows: Tap Escape Puzzle** — 25 chars (App Store limit 30, Play limit 30).
+From 1.1.0. 1.0 shipped as `Arrows: Line Puzzle`, whose words ("line") carry
+little search volume; the new name puts "arrows", "tap", "escape" and "puzzle"
+in the field Apple weights most. The home-screen label stays `Arrows`
+(`CFBundleDisplayName`).
 
 ## Subtitle (App Store, 30 chars)
 
-**Clear every arrow in order** — 26
-
-## Short description (Play, 80 chars)
-
-**Tap arrows with a clear path out. One wrong move and the board fights back.** — 75
+**Brain Teaser Logic Maze Game** — 28
 
 ## Keywords (App Store, 100 chars, comma-separated, no spaces)
 
+Never repeat a word already in the name or subtitle — Apple indexes those
+already, so a repeat is wasted characters. No competitor or trademarked names.
+
 ```
-puzzle,logic,brain,arrow,line,order,strategy,offline,relax,think,board,solve,minimal,daily
+unblock,iq,mind,offline,daily,challenge,board,strategy,relax,solve,line,think,hard,clear,order
 ```
-90 chars
+94 chars
+
+## Short description (Play, 80 chars)
+
+**Tap each arrow out in the right order. 600 logic boards and a daily challenge.** — 78
+
+## Promotional text (App Store, 170 chars — editable any time, no review)
+
+```
+600 boards of tap-to-escape logic. One rule: an arrow can only leave if its path is clear. New chapters, a daily challenge, and no internet needed.
+```
+147 chars
 
 ## Full description (Play limit 4000, App Store 4000)
 
 ```
 Every arrow wants out. Only some of them can leave.
 
-Arrows is a puzzle about order. Tap an arrow and it slides off the board — but
-only if nothing stands in its way. Get the order wrong and it slams into
-whatever is blocking it, and you lose a heart.
+Arrows is a tap-to-escape logic puzzle. Tap an arrow and it slides off the
+board — but only if nothing stands in its way. Get the order wrong and it
+slams into whatever is blocking it, and you lose a heart.
 
 The catch: an arrow blocks along its whole body, not just its head. A long
 arrow lying across the board is a wall. Read the whole line before you commit.
 
 WHAT YOU GET
-• 80 hand-tuned boards, from a gentle 3x3 opener to dense 18x18 tangles
+• 600 boards in 20 packs, from a gentle 3x3 opener to dense 18x18 mazes
 • Four difficulties — Easy, Medium, Hard, Expert
 • A fresh daily challenge, with a streak to keep alive
 • Six colour themes for the board
@@ -49,8 +59,9 @@ WHAT YOU GET
 • Undo, hints and an optional cell grid when a board gets tight
 
 BUILT TO PLAY ANYWHERE
-No account. No sign-up. No internet needed. Your progress stays on your phone.
-Pick it up for one board on a train, or lose an hour to the Expert pack.
+No account. No sign-up. No internet needed to play. Your progress stays on
+your phone. Pick it up for one board on a train, or lose an hour to an
+Expert chapter.
 
 SIMPLE TO LEARN, HARD TO FINISH
 The rule takes ten seconds to understand and the last boards will still take
@@ -58,14 +69,15 @@ you a while. There is no timer and no pressure — just you, the board, and the
 order you choose.
 ```
 
-## What's New (1.0.1)
+## What's New (1.1.0)
 
 ```
-The board now sits in the middle of the screen, with even space above and
-below it. On iPad in landscape it uses the full height of the screen.
-
-Arrows now opens in your phone's language straight away. You can switch to
-another one any time in Settings > Language.
+• 520 new boards in 13 chapters — 600 in all
+• The board now sits in the middle of the screen
+• Arrows opens in your phone's language: English, Español, Português,
+  Bahasa Indonesia or हिन्दी
+• Hint packs and an Everything Pack in the Shop
+• Try a premium theme free for a day
 ```
 
 ## What's New (first release)
@@ -74,6 +86,37 @@ another one any time in Settings > Language.
 First release. 80 boards, daily challenges, six themes, and no internet
 required.
 ```
+
+## Localized listings (App Store)
+
+Each locale has its own name, subtitle and keyword fields. **The US store also
+indexes Spanish (Mexico)**, so its keyword field doubles as a second US keyword
+field — that is why it carries a few English words. The name stays the English
+one everywhere; it is the brand.
+
+| Locale | Subtitle | Keywords |
+| --- | --- | --- |
+| Spanish (Mexico) | `Rompecabezas de lógica` (22) | `flechas,juego,mente,laberinto,cerebro,reto,diario,ingenio,desbloquear,logica,arrow,brainteaser,iq` (97) |
+| Portuguese (Brazil) | `Quebra-cabeça de lógica` (23) | `setas,jogo,mente,labirinto,cérebro,desafio,diário,raciocínio,desbloquear,lógica,offline` (87) |
+| Indonesian | `Teka-teki logika & asah otak` (28) | `panah,permainan,otak,labirin,logika,tantangan,harian,asah,offline,strategi,santai` (81) |
+| Hindi | `दिमाग़ी पहेली और लॉजिक गेम` (26) | `तीर,पहेली,दिमाग,खेल,लॉजिक,भूलभुलैया,चुनौती,रोज़ाना,ऑफ़लाइन,arrow,puzzle,brain,logic` (83) |
+
+Descriptions for these locales: translate the English one above; the app's own
+strings in `lib/l10n/app_*.arb` set the terms (pista / dica / petunjuk / संकेत
+for "hint").
+
+## In-app products
+
+| Product id | Type | Price (USD tier) | What it gives |
+| --- | --- | --- | --- |
+| `arrows_remove_ads` | Non-consumable | $3.99 (was $1.99) | No banners or interstitials, +10 hints once. Rewarded ads stay optional. |
+| `arrows_theme_pack` | Non-consumable | $0.99 | Aurora, Noir and Solar |
+| `arrows_bundle` | Non-consumable | $4.99 | Everything Pack: both of the above + 30 hints |
+| `arrows_hints_15` | Consumable | $0.99 | 15 hints |
+| `arrows_hints_60` | Consumable | $2.99 | 60 hints |
+
+Hint counts live in `AppConfig.hintsPerProduct`; keep this table and the store
+descriptions in step with it.
 
 ## Category
 
@@ -94,6 +137,7 @@ Declare, matching `ios/Runner/PrivacyInfo.xcprivacy` and the privacy policy:
 | Device or other IDs | Collected, for advertising, **used for tracking** |
 | Location | Approximate, derived from IP by the ad SDK |
 | Purchases | Handled by the store, not collected by the app |
+| App interactions (Play: "App activity") | Collected by Aptabase, **for analytics only**, not linked to identity, not used for tracking, not shared (Aptabase is a service provider). App Store label: add the **Analytics** purpose to Product Interaction, "Not linked to you" |
 | Data encrypted in transit | Yes |
 | Users can request deletion | Uninstalling removes everything; nothing is held on our servers |
 

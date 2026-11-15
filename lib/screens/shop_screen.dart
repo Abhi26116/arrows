@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:arrows_game/l10n/app_localizations.dart';
+import 'package:in_app_purchase/in_app_purchase.dart' show ProductDetails;
 
 import '../audio/sfx.dart';
 import '../config/app_config.dart';
 import '../data/progress_store.dart';
 import '../services/ads_service.dart';
+import '../services/analytics_service.dart';
 import '../services/iap_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ad_banner.dart';
@@ -21,6 +23,28 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Analytics.instance.track('shop_open');
+    // Purchases land through the store stream, after buy() has returned.
+    AppStore.instance.addListener(_onStoreChanged);
+    // Prices may not have arrived yet if the shop opens soon after launch.
+    if (IapService.instance.products.isEmpty) {
+      IapService.instance.queryProducts().then((_) => _onStoreChanged());
+    }
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppStore.instance.removeListener(_onStoreChanged);
+    super.dispose();
+  }
 
   Future<void> _buy(String id) async {
     setState(() => _busy = true);
@@ -46,6 +70,13 @@ class _ShopScreenState extends State<ShopScreen> {
     final iap = IapService.instance;
     final remove = iap.product(AppConfig.iapRemoveAds);
     final pack = iap.product(AppConfig.iapThemePack);
+    final bundle = iap.product(AppConfig.iapBundle);
+    final hints15 = iap.product(AppConfig.iapHints15);
+    final hints60 = iap.product(AppConfig.iapHints60);
+    final ownsEverything = store.removeAdsOwned && store.themePackOwned;
+
+    String price(ProductDetails? product, String fallback) =>
+        product?.price ?? fallback;
 
     return Scaffold(
       body: AtmosphereBackground(
@@ -58,12 +89,26 @@ class _ShopScreenState extends State<ShopScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
+                    if (!ownsEverything) ...[
+                      _ProductCard(
+                        title: l.shopBundle,
+                        subtitle: price(bundle, l.shopNonConsumable),
+                        body: l.shopBundleBody(
+                            AppConfig.hintsPerProduct[AppConfig.iapBundle]!),
+                        badge: l.shopBestValue,
+                        owned: false,
+                        busy: _busy,
+                        onBuy: () => _buy(AppConfig.iapBundle),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _ProductCard(
                       title: l.shopRemoveAds,
                       subtitle: store.removeAdsOwned
                           ? l.shopOwned
-                          : (remove?.price ?? l.shopNonConsumable),
-                      body: l.shopRemoveAdsBody,
+                          : price(remove, l.shopNonConsumable),
+                      body: l.shopRemoveAdsBody(
+                          AppConfig.hintsPerProduct[AppConfig.iapRemoveAds]!),
                       owned: store.removeAdsOwned,
                       busy: _busy,
                       onBuy: () => _buy(AppConfig.iapRemoveAds),
@@ -73,27 +118,57 @@ class _ShopScreenState extends State<ShopScreen> {
                       title: l.shopThemePack,
                       subtitle: store.themePackOwned
                           ? l.shopOwned
-                          : (pack?.price ?? l.shopNonConsumable),
+                          : price(pack, l.shopNonConsumable),
                       body: l.shopThemePackBody,
                       owned: store.themePackOwned,
                       busy: _busy,
                       onBuy: () => _buy(AppConfig.iapThemePack),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 22, bottom: 10),
+                      child: Text(
+                        l.shopHintsHeader(store.bonusHints),
+                        style: TextStyle(
+                          fontFamily: 'DMSans',
+                          fontVariations: const [FontVariation('wght', 700)],
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: AppColors.muted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    _ProductCard(
+                      title: l.shopHintPack(15),
+                      subtitle: price(hints15, l.shopConsumable),
+                      body: l.shopHintPackBody,
+                      owned: false,
+                      busy: _busy,
+                      onBuy: () => _buy(AppConfig.iapHints15),
+                    ),
+                    const SizedBox(height: 12),
+                    _ProductCard(
+                      title: l.shopHintPack(60),
+                      subtitle: price(hints60, l.shopConsumable),
+                      body: l.shopHintPackBody,
+                      badge: l.shopBestValue,
+                      owned: false,
+                      busy: _busy,
+                      onBuy: () => _buy(AppConfig.iapHints60),
+                    ),
                     const SizedBox(height: 12),
                     _ProductCard(
                       title: l.shopBonusHint,
-                      subtitle: store.adsEnabled ? l.shopWatchAnAd : l.shopFree,
-                      body: store.adsEnabled
-                          ? l.shopBonusHintWatch(store.bonusHints)
-                          : l.shopBonusHintFree(store.bonusHints),
+                      subtitle: l.shopWatchAnAd,
+                      body: l.shopBonusHintWatch(store.bonusHints),
                       owned: false,
                       busy: _busy,
-                      cta: store.adsEnabled ? l.shopWatch : l.shopClaim,
+                      cta: l.shopWatch,
                       onBuy: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         setState(() => _busy = true);
-                        final ok =
-                            await AdsService.instance.showRewardedForHint();
+                        final ok = await AdsService.instance
+                            .showRewardedForHint(placement: 'shop_hint');
                         if (mounted) {
                           setState(() => _busy = false);
                           messenger.showSnackBar(
@@ -125,9 +200,8 @@ class _ShopScreenState extends State<ShopScreen> {
                     if (kDebugMode && !AppConfig.screenshotMode) ...[
                       const SizedBox(height: 12),
                       Text(
-                        'Debug: products "${AppConfig.iapRemoveAds}" and '
-                        '"${AppConfig.iapThemePack}" must exist in Play Console '
-                        '/ App Store Connect.',
+                        'Debug: products ${IapService.productIds.join(', ')} '
+                        'must exist in Play Console / App Store Connect.',
                         style: TextStyle(color: AppColors.muted, fontSize: 11),
                       ),
                     ],
@@ -152,6 +226,7 @@ class _ProductCard extends StatelessWidget {
     required this.busy,
     required this.onBuy,
     this.cta,
+    this.badge,
   });
 
   final String title;
@@ -162,18 +237,45 @@ class _ProductCard extends StatelessWidget {
   final VoidCallback onBuy;
   final String? cta;
 
+  /// A short tag over the title, such as "Best value"; it also outlines the
+  /// card in the accent colour.
+  final String? badge;
+
   @override
   Widget build(BuildContext context) {
+    final badge = this.badge;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.surfaceHigh),
+        border: Border.all(
+          color: badge == null ? AppColors.surfaceHigh : AppColors.accent,
+          width: badge == null ? 1 : 1.4,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (badge != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                badge.toUpperCase(),
+                style: TextStyle(
+                  color: AppColors.accentSoft,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Row(
             children: [
               Expanded(

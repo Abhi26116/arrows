@@ -10,7 +10,10 @@ import '../logic/game_controller.dart';
 import '../logic/level_generator.dart';
 import '../models/arrow.dart';
 import '../models/level.dart';
+import '../config/app_config.dart';
 import '../services/ads_service.dart';
+import '../services/analytics_service.dart';
+import '../services/iap_service.dart';
 import '../services/leaderboard_service.dart';
 import '../services/review_service.dart';
 import '../theme/app_theme.dart';
@@ -102,7 +105,19 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _showGrid = AppStore.instance.showGrid;
+    // Hints bought or earned elsewhere land in the store; the badge follows.
+    AppStore.instance.addListener(_onStoreChanged);
     _load();
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppStore.instance.removeListener(_onStoreChanged);
+    super.dispose();
   }
 
   void _load() {
@@ -116,7 +131,13 @@ class _GameScreenState extends State<GameScreen> {
     _won = false;
     _gameOver = false;
     _hintsUsed = 0;
+    Analytics.instance.track('level_start', _eventProps);
   }
+
+  /// Which board an event is about.
+  Map<String, Object?> get _eventProps => widget.isDaily
+      ? const {'mode': 'daily'}
+      : {'mode': 'campaign', 'level': _level.id};
 
   Future<void> _onTap(int arrowId) async {
     if (_busy || _won || _gameOver) return;
@@ -136,6 +157,11 @@ class _GameScreenState extends State<GameScreen> {
         setState(() => _blockedId = null);
         if (_session.isOutOfLives && !_gameOver) {
           _gameOver = true;
+          Analytics.instance.track('level_fail', {
+            ..._eventProps,
+            'cleared': _session.cleared,
+            'total': _session.totalArrows,
+          });
           _showGameOver();
         }
       });
@@ -175,10 +201,31 @@ class _GameScreenState extends State<GameScreen> {
         await AppStore.instance.completeLevel(widget.levelId!, stars: stars);
       }
       await LeaderboardService.instance.submitScore();
+      Analytics.instance.track(widget.isDaily ? 'daily_win' : 'level_win', {
+        ..._eventProps,
+        'stars': stars,
+        'mistakes': _session.mistakes,
+        'hints': _hintsUsed,
+      });
+      if (!mounted) return;
+      // The rating sheet goes up over the win panel, while the player is
+      // looking at their stars — not after they have tapped Next and moved
+      // on, by which time this screen is already being replaced. A win that
+      // asks for a rating skips its interstitial: one interruption is enough.
+      final askReview = await ReviewService.instance.shouldAsk(
+        totalCleared: AppStore.instance.clearedCount,
+        stars: stars,
+      );
+      if (askReview) {
+        Analytics.instance.track('review_asked');
+        Future.delayed(
+          const Duration(milliseconds: 900),
+          ReviewService.instance.request,
+        );
+      }
       if (!mounted) return;
       await _showWin(stars);
-      await AdsService.instance.maybeShowInterstitialAfterWin();
-      if (mounted) await _maybeAskForReview();
+      await AdsService.instance.maybeShowInterstitialAfterWin(skip: askReview);
     } else {
       setState(() {});
     }
@@ -186,54 +233,6 @@ class _GameScreenState extends State<GameScreen> {
 
   /// One star per heart still beating.
   int _calcStars() => _session.lives.clamp(1, PlaySession.maxLives);
-
-  /// Only ever after a win, and only after enough boards that the player has
-  /// an opinion worth giving. [ReviewService] decides; this just asks nicely
-  /// first, so nobody is dropped into the store's own sheet unprompted.
-  Future<void> _maybeAskForReview() async {
-    if (!await ReviewService.instance
-        .shouldAsk(AppStore.instance.clearedCount)) {
-      return;
-    }
-    if (!mounted) return;
-    final l = AppLocalizations.of(context);
-    final rate = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          l.reviewTitle,
-          style: TextStyle(
-            fontFamily: 'DMSans',
-            fontVariations: const [FontVariation('wght', 700)],
-            fontWeight: FontWeight.w700,
-            color: AppColors.ink,
-          ),
-        ),
-        content: Text(
-          l.reviewBody,
-          style: TextStyle(color: AppColors.muted, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child:
-                Text(l.reviewLater, style: TextStyle(color: AppColors.muted)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.reviewRate),
-          ),
-        ],
-      ),
-    );
-    if (rate == true) {
-      await ReviewService.instance.accepted();
-    } else {
-      await ReviewService.instance.declined();
-    }
-  }
 
   Future<void> _showWin(int stars) async {
     final l = AppLocalizations.of(context);
@@ -371,6 +370,10 @@ class _GameScreenState extends State<GameScreen> {
               onPressed: () async {
                 final earned =
                     await AdsService.instance.showRewardedForExtraLife();
+                Analytics.instance.track('extra_life', {
+                  ..._eventProps,
+                  'earned': earned ? 'yes' : 'no',
+                });
                 if (!mounted) return;
                 if (!earned) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -466,32 +469,120 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// The first hint on every board is free. After that a hint comes from
+  /// the bonus stock — earned from ads or bought — and when that is empty the
+  /// player is offered both ways to refill it.
   Future<void> _hint() async {
     final ids = _session.controller.clearableArrowIds();
     if (ids.isEmpty) return;
 
-    // Prefer free/bonus hints; otherwise offer rewarded ad.
-    final hasBonus = await AppStore.instance.consumeBonusHint();
-    if (!hasBonus && AppStore.instance.adsEnabled && _hintsUsed >= 1) {
-      final earned = await AdsService.instance.showRewardedForHint();
-      if (!earned) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).gameHintAdHint),
-          ),
-        );
-        return;
-      }
-      await AppStore.instance.consumeBonusHint();
+    String source;
+    if (_hintsUsed == 0) {
+      source = 'free';
+    } else if (await AppStore.instance.consumeBonusHint()) {
+      source = 'bonus';
+    } else {
+      if (!await _refillHints()) return;
+      if (!await AppStore.instance.consumeBonusHint()) return;
+      source = 'ad';
     }
+    if (!mounted) return;
 
+    Analytics.instance.track('hint', {..._eventProps, 'source': source});
     SoundService.instance.play(Sfx.hint);
     SoundService.instance.hapticLight();
     setState(() {
       _hintId = ids.first;
       _hintsUsed++;
     });
+  }
+
+  /// Out of hints: watch an ad for one, or buy a pack. Returns whether a hint
+  /// was earned right here — a purchase lands later, through the store, and
+  /// the player taps Hint again once it has.
+  Future<bool> _refillHints() async {
+    final l = AppLocalizations.of(context);
+    final pack = IapService.instance.product(AppConfig.iapHints15);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(Icons.lightbulb_rounded,
+                  color: AppColors.accentSoft, size: 30),
+              const SizedBox(height: 8),
+              Text(
+                l.hintOutTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'DMSans',
+                  fontVariations: const [FontVariation('wght', 700)],
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l.hintOutBody,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.muted, height: 1.4),
+              ),
+              const SizedBox(height: 18),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context, 'ad'),
+                icon: const Icon(Icons.play_circle_outline_rounded, size: 20),
+                label: Text(l.hintOutWatch),
+              ),
+              if (pack != null) ...[
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, 'buy'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.ink,
+                    side: BorderSide(color: AppColors.surfaceHigh),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(l.hintOutBuy(15, pack.price)),
+                ),
+              ],
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.hintOutLater,
+                    style: TextStyle(color: AppColors.muted)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return false;
+
+    if (choice == 'buy') {
+      await IapService.instance.buy(AppConfig.iapHints15);
+      return false;
+    }
+    if (choice != 'ad') return false;
+
+    final earned = await AdsService.instance.showRewardedForHint();
+    if (!earned && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.shopAdNotReady)),
+      );
+    }
+    return earned;
   }
 
   /// Restarting throws away a board in progress, so ask first once the player
@@ -751,9 +842,9 @@ class _GameScreenState extends State<GameScreen> {
                             bottom: 16,
                             child: Column(
                               children: [
-                                CircleIconButton(
-                                  icon: Icons.lightbulb_outline_rounded,
-                                  accent: true,
+                                _HintButton(
+                                  ready: (_hintsUsed == 0 ? 1 : 0) +
+                                      AppStore.instance.bonusHints,
                                   tooltip: l.gameTooltipHint,
                                   onTap: _busy ? null : _hint,
                                 ),
@@ -779,6 +870,65 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The hint button, with a badge for how many hints are ready to use — or a
+/// small play mark when the next one comes from an ad.
+class _HintButton extends StatelessWidget {
+  const _HintButton({
+    required this.ready,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final int ready;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CircleIconButton(
+          icon: Icons.lightbulb_outline_rounded,
+          accent: true,
+          tooltip: tooltip,
+          onTap: onTap,
+        ),
+        Positioned(
+          top: -4,
+          right: -4,
+          child: IgnorePointer(
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 20),
+              height: 20,
+              // A count may need room; the play mark sits in a round badge.
+              padding: EdgeInsets.symmetric(horizontal: ready > 0 ? 5 : 0),
+              decoration: BoxDecoration(
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.bgBottom, width: 1.5),
+              ),
+              alignment: Alignment.center,
+              child: ready > 0
+                  ? Text(
+                      ready > 99 ? '99+' : '$ready',
+                      style: TextStyle(
+                        color: AppColors.bgBottom,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    )
+                  : Icon(Icons.play_arrow_rounded,
+                      size: 13, color: AppColors.bgBottom),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
