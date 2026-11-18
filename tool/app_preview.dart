@@ -9,6 +9,11 @@
 // GameScreen the app ships, taps arrows the game reports as clearable, and
 // captures whatever the widget tree draws, flight and settle animations
 // included.
+//
+// DEVICE=shorts records a 1080x1920 clip for YouTube Shorts / Instagram Reels
+// instead: the phone screen sits in a frame under a caption, and the board is
+// played to the very end. tool/shorts.sh drives it.
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -20,6 +25,7 @@ import 'package:arrows_game/screens/game_screen.dart';
 import 'package:arrows_game/theme/app_theme.dart';
 import 'package:arrows_game/widgets/game_board.dart';
 import 'package:arrows_game/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +49,27 @@ const _device = String.fromEnvironment('DEVICE', defaultValue: 'iphone');
 const _sizes = <String, (Size, double)>{
   'iphone': (Size(443, 960), 2.0),
   'ipad': (Size(1024, 1366), 1200 / 1024),
+  'shorts': (Size(540, 960), 2.0),
 };
+
+bool get _isShort => _device == 'shorts';
+
+/// The board to play. 56 is the one the App Store previews use.
+const _level = int.fromEnvironment('LEVEL', defaultValue: 56);
+
+/// Frames to sit on the untouched board before the first tap, after its entry
+/// animation — the "which arrow goes first?" pause in a Shorts clip.
+const _holdStart = int.fromEnvironment('HOLD_START', defaultValue: 0);
+
+/// Shorts captions arrive base64-encoded UTF-8, so commas and Devanagari
+/// survive the trip through --dart-define.
+String _decoded(String b64) =>
+    b64.isEmpty ? '' : utf8.decode(base64.decode(b64));
+final _hook = _decoded(const String.fromEnvironment('HOOK_B64'));
+final _endText = _decoded(const String.fromEnvironment('END_B64'));
+
+/// Devanagari for Hindi captions; DM Sans has no Indic glyphs.
+const _devanagariFont = '/System/Library/Fonts/Kohinoor.ttc';
 
 Size get _logical => _sizes[_device]!.$1;
 double get _pixelRatio => _sizes[_device]!.$2;
@@ -119,6 +145,7 @@ void main() {
     addTearDown(() => FlutterError.onError = reportError);
 
     await _loadFont('DMSans', 'assets/fonts/DMSans.ttf');
+    if (_isShort) await _loadFont('Devanagari', _devanagariFont);
     await _loadFont(
         'MaterialIcons', '$_materialFonts/MaterialIcons-Regular.otf');
 
@@ -130,6 +157,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     final captureKey = GlobalKey();
+    final caption = ValueNotifier(_hook);
     await tester.pumpWidget(
       RepaintBoundary(
         key: captureKey,
@@ -140,8 +168,10 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           // The wrapper the real app installs — without it the iPad recording
           // would show a phone-sized interface at iPad dimensions.
-          builder: (context, child) => TabletScale(child: child!),
-          home: GameScreen(customLevel: LevelCatalog.byId(56)),
+          builder: (context, child) => _isShort
+              ? _ShortsFrame(caption: caption, child: child!)
+              : TabletScale(child: child!),
+          home: GameScreen(customLevel: LevelCatalog.byId(_level)),
         ),
       ),
     );
@@ -161,15 +191,16 @@ void main() {
       });
     }
 
-    Future<void> hold(int frames) async {
+    Future<void> hold(int frames, {Duration step = _frameStep}) async {
       for (var i = 0; i < frames; i++) {
-        await tester.pump(_frameStep);
+        await tester.pump(step);
         await capture();
       }
     }
 
     // Let the board's entry animation play out before anything is touched.
     await hold(20);
+    await hold(_holdStart);
 
     // The GameBoard paints a single canvas and maps a tap to the nearest
     // arrow, so there is no per-arrow widget to find. Work out where a cell
@@ -183,7 +214,26 @@ void main() {
       return origin + Offset((col + 0.5) * cell, (row + 0.5) * cell);
     }
 
-    while (frame < _targetFrames) {
+    // GameScreen ignores taps while an arrow is still flying (320ms), so
+    // every move gets 400ms of game time whatever the pace. A Short plays the
+    // whole board, so on a big board it captures fewer frames across those
+    // 400ms — the moves play back faster (up to 2x), about 26 seconds of them
+    // whatever the arrow count, while the pauses and captions around them
+    // keep real time. Previews keep their 12 frames a move at real time.
+    final arrowCount = tester
+        .widget<GameBoard>(find.byType(GameBoard))
+        .session
+        .controller
+        .arrows
+        .length;
+    final perMove =
+        _isShort ? (780 ~/ arrowCount).clamp(6, 12) : _framesPerMove;
+    final moveStep = _isShort
+        ? Duration(microseconds: 400000 ~/ perMove)
+        : _frameStep;
+    final maxFrames = _isShort ? 30 * 55 : _targetFrames;
+
+    while (frame < maxFrames) {
       final session = tester.widget<GameBoard>(find.byType(GameBoard)).session;
       final ids = session.controller.clearableArrowIds();
       if (ids.isEmpty) break;
@@ -191,13 +241,93 @@ void main() {
       // Always a legal move — the controller is the one saying it is clearable.
       final arrow = session.controller.arrows[ids.first]!;
       await tester.tapAt(centreOf(session.controller, arrow.row, arrow.col));
-      await hold(_framesPerMove);
+      await hold(perMove, step: moveStep);
     }
 
     // Sit on the result for a beat so the video does not cut mid-motion.
-    await hold(30);
+    if (_endText.isNotEmpty) caption.value = _endText;
+    await hold(_isShort ? 75 : 30);
 
     // ignore: avoid_print
     print('wrote $frame frames to ${dir.path}');
   });
+}
+
+/// A Shorts canvas: the caption on top, the phone screen framed below it.
+/// The phone keeps its real logical size (443x960) and is scaled down as a
+/// whole, so the game lays out exactly as it does on an iPhone. Everything
+/// sits clear of the bottom fifth and the right edge, where YouTube and
+/// Instagram draw their own buttons and titles.
+class _ShortsFrame extends StatelessWidget {
+  const _ShortsFrame({required this.caption, required this.child});
+
+  final ValueListenable<String> caption;
+  final Widget child;
+
+  static const _phone = Size(443, 960);
+  static const _phoneHeight = 720.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    return Material(
+      color: AppColors.bgTop,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 170,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 48, 28, 14),
+              child: Center(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: caption,
+                  builder: (context, text, _) => Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    style: TextStyle(
+                      fontFamily: 'DMSans',
+                      fontFamilyFallback: const ['Devanagari'],
+                      fontVariations: const [FontVariation('wght', 800)],
+                      fontWeight: FontWeight.w800,
+                      fontSize: 29,
+                      height: 1.25,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            height: _phoneHeight,
+            width: _phone.width * _phoneHeight / _phone.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.55),
+                width: 2,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: FittedBox(
+                child: SizedBox.fromSize(
+                  size: _phone,
+                  child: MediaQuery(
+                    data: media.copyWith(
+                      size: _phone,
+                      padding: EdgeInsets.zero,
+                      viewPadding: EdgeInsets.zero,
+                    ),
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
